@@ -102,7 +102,8 @@ export class OnchainScene extends Phaser.Scene {
     
     // Debug text
     const debugString = JSON.stringify({
-      systemInfo: this.sys.game.device.os,
+      //systemInfo: this.sys.game.device.os,
+      pid: import.meta.env.WC_PROJECT_ID || 'fail',
       isAndroid: this.sys.game.device.os.android,
       isIOs: this.sys.game.device.os.iOS,
       isTouchable: this.sys.game.device.input.touch
