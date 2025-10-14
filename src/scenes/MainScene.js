@@ -1,4 +1,6 @@
 const FLASH_DURATION = 111;
+const MEDIUM_FLASH_DURATION = 555;
+const LONG_FLASH_DURATION = 1111;
 const GLITCH_INTERVAL = 7777;
 const SUCCESS_THRESHOLD = 0.69;
 
@@ -23,10 +25,16 @@ export class MainScene extends Phaser.Scene {
     this.isBlackSwanMode = false;
     this.candlesConverted = 0;
     this.maxCandles = 7;
-    this.candleSpeed = 420;
+    this.candleSpeed = 1111;
     this.blackSwanDuration = 11111;
     
     this.isMobile = false;
+    
+    this.settingsOpen = false;
+    this.settingsMenu = null;
+    this.audioEnabled = true;
+    this.flashesEnabled = true;
+    this.skinModEnabled = false;
   }
 
   create() {
@@ -60,7 +68,7 @@ export class MainScene extends Phaser.Scene {
       backgroundColor: '#000'
     };
 
-    this.add.text(width / 2, height - 111, 'Click to Kick!', textStyle).setOrigin(0.5);
+    this.instructionsMsg = this.add.text(width / 2, height - 111, 'Click to Kick!', textStyle).setOrigin(0.5);
     this.add.text(width / 2, 400, 'KICK!', textStyle).setOrigin(0.5);
 
     this.scoreDisplay = this.add.text(400, 500, 'SCORE: XXX', {
@@ -124,7 +132,7 @@ export class MainScene extends Phaser.Scene {
       width / 2, 
       height / 2, 
       'player'
-    ).setScale(3).setVisible(true);
+    ).setScale(3).setVisible(this.skinModEnabled);
     
     this.ball = this.add.sprite(
       width / 2, 
@@ -167,6 +175,26 @@ export class MainScene extends Phaser.Scene {
       this.kickPower += 1;
       this.add.text(400, 350, `+1 Kick Power!`, { fontSize: '20px', fill: '#f1c40f' }).setOrigin(0.5).setAlpha(0.8);
     });
+    
+    // TODO: add gear icon sprite
+    // fallback simple gear shape:
+    const gear = this.make.graphics();
+    gear.lineStyle(2, 0x00ff00);
+    gear.strokeCircle(0, 0, 20);
+    // Add some teeth
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const x1 = Math.cos(angle) * 20;
+      const y1 = Math.sin(angle) * 20;
+      const x2 = Math.cos(angle) * 28;
+      const y2 = Math.sin(angle) * 28;
+      gear.lineBetween(x1, y1, x2, y2);
+    }
+    gear.generateTexture('gearIcon', 40, 40);
+    gear.destroy();
+
+    // settings
+    this.createSettings();
 
     // events 
     
@@ -215,7 +243,9 @@ export class MainScene extends Phaser.Scene {
       delay: GLITCH_INTERVAL + Math.random() * GLITCH_INTERVAL,
       callback: () => {
         this.cameras.main.shake(FLASH_DURATION, 0.01);
-        this.cameras.main.flash(FLASH_DURATION, 255, 0, 0);
+        if (this.flashesEnabled) {
+          this.cameras.main.flash(FLASH_DURATION, 255, 0, 0);
+        }
         this.addLog('GLITCH: PACKET LOSS -1');
         this.score -= 1;
         //this.sound.play('glitch');
@@ -236,23 +266,6 @@ export class MainScene extends Phaser.Scene {
     this.loadSave();
   }
 
-  // Método único de redimensionado
-  resizeGame() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    // Ajustar el sistema de escala
-    this.scale.resize(width, height);
-
-    // Ajustar cámaras
-    this.cameras.resize(width, height);
-
-    // Reposition UI
-    if (this.scoreDisplay) this.scoreDisplay.setPosition(width / 2, height - 50);
-    if (this.levelText) this.levelText.setPosition(20, 20);
-    if (this.anomalyOverlay) this.anomalyOverlay.setPosition(width / 2, height / 2);
-  }
-
   updateAnomalyUI() {
     if (this.inAnomalyMode) {
       const percent =  Math.floor((this.packetsCollected / this.maxPackets) * 100);    
@@ -270,11 +283,15 @@ export class MainScene extends Phaser.Scene {
     if (this.inAnomalyMode || this.isBlackSwanMode) return;
 
     if (Math.random() * 1000 > 900) {
-      this.cameras.main.shake(FLASH_DURATION, 0.01);
-      this.cameras.main.flash(FLASH_DURATION, 255, 0, 0);
-      this.addLog('GLITCH: PACKET LOSS -1');
+      this.addLog('MEMPOOL GLITCH: PACKET LOSS -1');
       this.score -= 1;
-      //this.sound.play('glitch');
+      this.cameras.main.shake(FLASH_DURATION, 0.01);
+      if (this.flashesEnabled) {
+        this.cameras.main.flash(FLASH_DURATION, 255, 0, 0);
+      }
+      if (this.audioEnabled) {
+        //this.sound.play('glitch');
+      }
       return;
     }
 
@@ -285,7 +302,7 @@ export class MainScene extends Phaser.Scene {
     this.addLog('KICK EXECUTED: +1');
 
     // Show player, play animation
-    this.player.setVisible(true);
+    this.player.setVisible(this.skinModEnabled);
     this.player.play('kickAnim');
 
     // Hide after animation
@@ -295,7 +312,15 @@ export class MainScene extends Phaser.Scene {
     });
     */
 
-    // Ball kick effect
+    this.cameras.main.shake(200, 0.01);
+    if (this.flashesEnabled) {
+      this.cameras.main.flash(50, 0, 255, 0);
+    }    
+    if (this.audioEnabled) {
+      //this.beepSFX.play();
+    }
+
+    // Ball kick effect (just a visual green block moving around)
     this.tweens.add({
       targets: this.ball,
       x: 400 + Phaser.Math.Between(-150, 150),
@@ -304,32 +329,42 @@ export class MainScene extends Phaser.Scene {
       yoyo: true,
       ease: 'Bounce.easeOut'
     });
-
-    this.cameras.main.shake(200, 0.01);
-    this.cameras.main.flash(50, 0, 255, 0);
     
-    //this.beepSFX.play();
-    if (this.score > 0 && this.score % 21 === 0) {
-      //this.glitchSFX.play();
-      this.cameras.main.shake(200, 0.02);
-      this.cameras.main.flash(FLASH_DURATION, 0, 255, 0);
-      this.addLog('SECURITY ALERT: ANOMALY DETECTED -3');
-      this.addLog('SECURITY ALERT: ANOMALY DETECTED -3');
-      this.score -= 3;
-      this.score -= 3;
-    }
+    if (this.score > 0) {      
+      if (this.score % 21 === 0) {        
+        this.addLog('SECURITY ALERT: ANOMALY DETECTED -3');
+        this.addLog('SECURITY ALERT: ANOMALY DETECTED -3');
+        
+        this.score -= 3;
+        this.score -= 3;
+        
+        this.cameras.main.shake(200, 0.02);
+        if (this.audioEnabled) {
+          //this.glitchSFX.play();
+        }
+        if (this.flashesEnabled) {
+          this.cameras.main.flash(FLASH_DURATION, 255, 0, 0);
+        }    
+      }
 
-    if (this.score > 0 && this.score % 11 === 0) {    
-      //this.accessSFX.play();
-      //this.addLog('ACCESS GRANTED: UPGRADE INSTALLED +7');
-      //this.score += 7;
-      this.addLog('STATUS PENDING: LOADING CHARTS...');
-      this.addLog('STATUS PENDING: RENDERING CHARTS...');     
-      this.addLog('STATUS SUCCESS: CHARTS READY');     
-    } 
+      if (this.score % 11 === 0) {    
+        this.addLog('STATUS PENDING: LOADING CHARTS');
+        this.addLog('STATUS PENDING: RENDERING CHARTS');     
+        this.addLog('STATUS SUCCESS: CHARTS ARE READY'); 
+        if (this.audioEnabled) {
+          //this.accessSFX.play();
+        } 
+      } 
+    }
     
     // Check for anomaly
     if (!this.inAnomalyMode && !this.isBlackSwanMode && this.totalClicks >= this.anomalyTrigger) {
+      this.addLog('SECURITY ALERT: ANOMALY EVENT');
+      this.addLog('SECURITY ALERT: ANOMALY EVENT');
+      this.cameras.main.shake(200, 0.02);
+      if (this.flashesEnabled) {
+        this.cameras.main.flash(FLASH_DURATION, 0, 255, 0);
+      }
       this.startAnomalyMode();
     }
 
@@ -337,9 +372,10 @@ export class MainScene extends Phaser.Scene {
     if (!this.inAnomalyMode && !this.isBlackSwanMode && this.totalClicks >= this.blackSwanTrigger) {    
       this.addLog('SECURITY ALERT: BLACKSWAN EVENT');
       this.addLog('SECURITY ALERT: BLACKSWAN EVENT');
-      this.addLog('SECURITY ALERT: BLACKSWAN EVENT');
       this.cameras.main.shake(200, 0.02);
-      this.cameras.main.flash(FLASH_DURATION, 0, 255, 0);
+      if (this.flashesEnabled) {
+        this.cameras.main.flash(FLASH_DURATION, 0, 255, 0);
+      }
       this.startBlackSwanMode();
     }
   }
@@ -392,9 +428,13 @@ export class MainScene extends Phaser.Scene {
     const collectedRatio = this.packetsCollected / this.maxPackets;
     const success = collectedRatio >= SUCCESS_THRESHOLD;
 
+    this.log.setText('');
+    this.instructionsMsg.setText('Click to kick!');
     if (success) {
       //this.sound.play('access');
-      this.cameras.main.flash(1111, 0, 255, 0);
+      if (this.flashesEnabled) {
+        this.cameras.main.flash(1111, 0, 255, 0);
+      }
       this.addLog(`ANOMALY CLEAR: BONUS UNLOCKED`);
       this.grantPower(); // define below
       this.anomalyLevel++; // level up
@@ -409,7 +449,9 @@ export class MainScene extends Phaser.Scene {
       }, [], this);
     } else {
       //this.sound.play('glitch');
-      this.cameras.main.flash(666, 255, 0, 0);
+      if (this.flashesEnabled) {
+        this.cameras.main.flash(1111, 255, 0, 0);
+      }
       this.addLog(`ANOMALY FAILED: DATA LOST`);
       this.anomalyTrigger += 33;
             
@@ -467,24 +509,30 @@ export class MainScene extends Phaser.Scene {
     // Increase difficulty
     this.maxPackets = this.maxPackets + Math.floor(this.anomalyLevel * 1.5);
     this.packetSpeed = 200 + (this.anomalyLevel * 50);
-    this.anomalyDuration += 1111;//Math.max(5000, 10000 - (this.anomalyLevel * 1000));
+    this.anomalyDuration += (this.anomalyLevel * 1111);//Math.max(5000, 10000 - (this.anomalyLevel * 1000));
 
-    // Visual/Sound Warning
-    this.cameras.main.flash(500, 255, 0, 0);
-    this.cameras.main.shake(500, 0.03);
-    //this.sound.play('glitch');
-    this.log.setText('');
+    // Update UI
     this.addLog('ANOMALY DETECTED: PACKET LEAK');
-
+    this.instructionsMsg.setText('Click to capture!');
+    this.log.setText('');
     this.anomalyOverlay.setAlpha(1);
     this.anomalyOverlay.setFill('#f00');
+
+    if (this.flashesEnabled) {
+      this.cameras.main.flash(MEDIUM_FLASH_DURATION, 255, 0, 0);
+    }
+    if (this.audioEnabled) {
+      //this.sound.play('glitch');
+    }
+    this.cameras.main.shake(MEDIUM_FLASH_DURATION, 0.03);
 
     // Spawn first packet immediately
     this.spawnPacket();
 
     // Keep spawning
     this.packetSpawnEvent = this.time.addEvent({
-      delay: 800 - (this.anomalyLevel * 50), // faster spawns
+    /// TODO:  we are already increasing speed, this may explain why they are sooo fast xd
+      delay: 800 - (this.anomalyLevel * 50), // faster spawns   
       callback: this.spawnPacket,
       callbackScope: this,
       loop: true
@@ -517,11 +565,12 @@ export class MainScene extends Phaser.Scene {
     // Click to collect
     packet.on('pointerdown', () => {
       if (!packet.active) return;
-      //this.sound.play('beep');
-
-
-      this.packetsCollected++;
       this.addLog('PACKET INTERCEPTED');
+      this.packetsCollected++;
+
+      if (this.audioEnabled) {
+        //this.sound.play('beep');
+      }      
 
       this.updateAnomalyUI();
 
@@ -535,17 +584,19 @@ export class MainScene extends Phaser.Scene {
         alpha: 0,
         duration: 300,
         ease: 'Power1'
-      });
-
-      packet.destroy();
-      // Remove from list
+      }); 
+      // remove from packet list
       this.packets = this.packets.filter(p => p !== packet);
 
       // Visual feedback
-      this.tweens.add({ targets: packet, alpha: 0, duration: 100 });
+      this.tweens.add({ targets: packet, alpha: 0, duration: 420 });
+      
+      this.time.delayedCall(420, () => {
+        packet.destroy();
+      }, [], this); 
     });
 
-    // Add to list
+    // Add to packet list
     this.packets.push(packet);
 
     // Add tween to move across screen
@@ -573,16 +624,20 @@ export class MainScene extends Phaser.Scene {
     this.candlesConverted = 0;
 
     // Increase difficulty
-    this.maxCandles = this.maxCandles + Math.floor(this.blackSwanLevel * 1.5);
-    this.candleSpeed = 200 + (this.blackSwanLevel * 50);
-    this.blackSwanDuration += 1111;//Math.max(5000, 10000 - (this.blackSwanLevel * 1000));
+    this.maxCandles += Math.floor(this.blackSwanLevel * 1.5);
+    this.candleSpeed += (this.blackSwanLevel * 50);
+    this.blackSwanDuration += (this.blackSwanLevel * 1111);//Math.max(5000, 10000 - (this.blackSwanLevel * 1000));
 
     // Visual/Sound Warning
-    this.cameras.main.flash(500, 255, 0, 0);
+    if (this.flashesEnabled) {
+      this.cameras.main.flash(500, 255, 0, 0);
+    }
     this.cameras.main.shake(500, 0.03);
     //this.sound.play('glitch');
     this.log.setText('');
+    this.instructionsMsg.setText('Click to recover!');
     this.addLog('BLACKSWAN DETECTED');
+    this.anomalyOverlay.setFill('#f00');
 
     // Start spawning
     this.startCandleSpawner();   
@@ -604,6 +659,8 @@ export class MainScene extends Phaser.Scene {
 
     // Destroy remaining candles
     this.candleGroup.clear(true, true);
+    this.log.setText('');
+    this.instructionsMsg.setText('Click to kick!');
 
     // Calculate success: 69% or more
     const convertedRatio = this.candlesConverted / this.maxCandles;
@@ -611,7 +668,9 @@ export class MainScene extends Phaser.Scene {
 
     if (success) {
       //this.sound.play('access');
-      this.cameras.main.flash(2222, 0, 255, 0);
+      if (this.flashesEnabled) {
+        this.cameras.main.flash(2222, 0, 255, 0);
+      }
       this.addLog(`BLACKSWAN CLEAR`);
       this.addLog(`WE ARE SO BACK`);
       this.addLog(`BLACKSWAN CLEAR`);
@@ -633,7 +692,9 @@ export class MainScene extends Phaser.Scene {
       }, [], this);
     } else {
       //this.sound.play('glitch');
-      this.cameras.main.flash(1111, 255, 0, 0);
+      if (this.flashesEnabled) {
+        this.cameras.main.flash(2222, 0, 255, 0);
+      }
       this.addLog(`BLACKSWAN CONFIRMED`);
       this.addLog(`MARKET CRASHED`);
       this.addLog(`BLACKSWAN CONFIRMED`);
@@ -650,7 +711,7 @@ export class MainScene extends Phaser.Scene {
       }, [], this);
     }
 
-    this.saveGame();
+    this.saveGame();    
     
     // Spawn animated candles (non-interactive, visual only)
     for (let i = 0; i < 11; i++) {
@@ -727,7 +788,7 @@ export class MainScene extends Phaser.Scene {
 
   startCandleSpawner() {
     this.candleSpawnEvent = this.time.addEvent({
-        delay: 800 + Math.random() * 1200,
+        delay: 420,
         callback: this.spawnCandle,
         callbackScope: this,
         loop: true
@@ -735,7 +796,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   spawnCandle() {
-    if (!this.isBlackSwanMode || this.candleGroup.length >= this.maxCandles) return;
+    if (!this.isBlackSwanMode || this.candleGroup.getLength() >= this.maxCandles + 5) return;
 
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
@@ -765,7 +826,7 @@ export class MainScene extends Phaser.Scene {
     });
     
     // Next spawn
-    this.candleSpawnEvent.delay = 420 + Math.random() * 1111;
+    this.candleSpawnEvent.delay = Math.random() * 1111;
   }
 
   onCandleClick(candle) {
@@ -792,6 +853,142 @@ export class MainScene extends Phaser.Scene {
       yoyo: true
     });
   } 
+
+  createSettings() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    const greenColor = '#0f0';
+    const font = 'Share Tech Mono';
+
+    // Gear button
+    this.gearButton = this.add.image(width - 40, 40, 'gearIcon')
+      .setTint(0x00ff00)
+      .setScale(1)
+      .setInteractive()
+      .setDepth(1000);
+
+    // Create settings menu (hidden by default)
+    this.settingsMenu = this.add.container(width, height);
+    this.settingsMenu.setDepth(1001);
+    this.settingsMenu.setVisible(false);
+
+    // Menu background
+    const bg = this.add.rectangle(0, 0, 300, 300, 0x000000, 0.9);
+    bg.setStrokeStyle(1, 0x00ff00);
+    this.settingsMenu.add(bg);
+
+    // Title
+    const title = this.add.text(0, -100, 'SETTINGS', {
+      fontFamily: font,
+      fontSize: '18px',
+      fill: greenColor
+    }).setOrigin(0.5);
+    this.settingsMenu.add(title);
+
+    // Mint Score button
+    const mintBtn = this.add.text(0, -40, 'MINT SCORE', {
+      fontFamily: font,
+      fontSize: '16px',
+      fill: greenColor
+    }).setOrigin(0.5).setInteractive();
+    this.settingsMenu.add(mintBtn);
+
+    // Audio toggle
+    this.audioText = this.add.text(0, 0, `AUDIO: ${this.audioEnabled ? 'ON' : 'OFF'}`, {
+      fontFamily: font,
+      fontSize: '16px',
+      fill: greenColor
+    }).setOrigin(0.5).setInteractive();
+    this.settingsMenu.add(this.audioText);
+
+    // Flashes toggle
+    this.flashesText = this.add.text(0, 40, `FLASHES: ${this.flashesEnabled ? 'ON' : 'OFF'}`, {
+      fontFamily: font,
+      fontSize: '16px',
+      fill: greenColor
+    }).setOrigin(0.5).setInteractive();
+    this.settingsMenu.add(this.flashesText);
+    
+    // Skin Mod toggle
+    this.skinModText = this.add.text(0, 80, `SKIN MOD: ${this.skinModEnabled ? 'ON' : 'OFF'}`, {
+      fontFamily: font,
+      fontSize: '16px',
+      fill: greenColor
+    }).setOrigin(0.5).setInteractive();
+    this.settingsMenu.add(this.skinModText);
+
+    // Close button
+    const closeBtn = this.add.text(0, 130, 'CLOSE', {
+      fontFamily: font,
+      fontSize: '16px',
+      fill: greenColor
+    }).setOrigin(0.5).setInteractive();
+    this.settingsMenu.add(closeBtn);
+
+    // Button interactions
+    this.gearButton.on('pointerdown', () => {
+      this.toggleSettings();
+    });
+
+    this.audioText.on('pointerdown', () => {
+      this.audioEnabled = !this.audioEnabled;
+      this.audioText.setText(`AUDIO: ${this.audioEnabled ? 'ON' : 'OFF'}`);
+    });
+
+    this.flashesText.on('pointerdown', () => {
+      this.flashesEnabled = !this.flashesEnabled;
+      this.flashesText.setText(`FLASHES: ${this.flashesEnabled ? 'ON' : 'OFF'}`);
+    });
+    
+    this.skinModText.on('pointerdown', () => {
+      this.skinModEnabled = !this.skinModEnabled;
+      this.skinModText.setText(`SKIN MOD: ${this.skinModEnabled ? 'ON' : 'OFF'}`);
+    });
+    
+    mintBtn.on('pointerdown', () => {
+      this.scene.launch('OnchainScene', {
+        score: this.score,
+        anomalyLevel: this.anomalyLevel,
+        blackSwanLevel: this.blackSwanLevel,
+        totalClicks: this.totalClicks
+      });
+      
+      // Pause main game
+      this.scene.pause();
+    });
+
+    closeBtn.on('pointerdown', () => {
+      this.toggleSettings();
+    });
+  }
+  
+  toggleSettings() {
+    this.settingsOpen = !this.settingsOpen;
+    this.settingsMenu.setVisible(this.settingsOpen);
+    if (this.settingsOpen) {
+      const width = this.cameras.main.width;
+      const height = this.cameras.main.height;
+      this.settingsMenu.setPosition(width / 2, height / 2);
+    }
+  }
+  
+  resizeGame() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    // Re Scale 
+    this.scale.resize(width, height);
+    this.cameras.resize(width, height);
+
+    // Reposition UI
+    if (this.scoreDisplay) this.scoreDisplay.setPosition(width / 2, height - 50);
+    if (this.levelText) this.levelText.setPosition(20, 20);
+    if (this.anomalyOverlay) this.anomalyOverlay.setPosition(width / 2, height / 2);
+    if (this.gearButton) this.gearButton.setPosition(width - 40, 40);
+    if (this.settingsOpen) {
+      this.settingsMenu.setPosition(width / 2, height / 2);
+    }
+  }
   
   shutdown() {
     window.removeEventListener('resize', this.resizeHandler);

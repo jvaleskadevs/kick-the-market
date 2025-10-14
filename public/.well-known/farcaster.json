@@ -1,0 +1,37 @@
+{
+ "accountAssociation": {
+    "header": "eyJmaWQiOjEzNTA1LCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4OTA4MzQ1YjE2YjM2NjBGMkQyYjhmMjc5MmEwNUM0RWFhQjQ1OTJBNiJ9",
+    "payload": "eyJkb21haW4iOiJvYmFnZW50cy52ZXJjZWwuYXBwIn0",
+    "signature": "MHgzYzAyN2VlNzRhZTZhNTU1YjY4ZTc0YWZiZWYxYjVhMWQxZjY0M2U0YTY4ODdlZDFmNzgyYmZhYTgzZjcwMDg5NjBkODZkYzZkMjBiZDY1NDI0Mjc5MmUwYWQ5ZGEwZWVhYTg1NzI0YTk4ZjI2N2E5NWM1NDY2NmUwZTU4MjY2MTFj"
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "Kick The Market",
+    "iconUrl": "https://kickthemarket.vercel.app/logo.png",
+    "homeUrl": "https://kickthemarket.vercel.app/",
+    "imageUrl": "https://kickthemarket.vercel.app/opengraph-image.png",
+    "heroImageUrl": "https://kickthemarket.vercel.app/obigen_hero.png", 
+    "castShareUrl": "https://kickthemarket.vercel.app/",
+    "buttonTitle": "Kick",
+    "splashImageUrl": "https://kickthemarket.vercel.app/logo.png",
+    "splashBackgroundColor": "#000",
+    "subtitle": "Kick the market to go bullish",
+    "description": "Kick the market to go bullish",
+    "primaryCategory": "games",
+    "tags": ["game", "market", "kick", "earn", "fun"],
+    "tagline": "Kick the market to go bullish",
+    "ogTitle": "Kick The Market",
+    "ogDescription": "Kick the market to go bullish",
+    "ogImageUrl": "https://kickthemarket.vercel.app/opengraph-image.png",
+    "webhookUrl": "",
+    "requiredChains": [
+      "eip155:8453",
+      "eip155:84532"
+    ]
+  },
+  "baseBuilder": { 
+    "allowedAddresses": [
+      "0x25434F84575C01D21544cd12BE354c0F3ccB397b"
+    ] 
+  }
+}

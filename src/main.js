@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
 import { MainScene } from './scenes/MainScene';
 import { TerminalScene } from './scenes/TerminalBoot';
+import { OnchainScene } from './scenes/OnchainScene';
 
 const config = {
   type: Phaser.AUTO,
@@ -14,7 +15,7 @@ const config = {
   },
   pixelArt: true,
   backgroundColor: '#000000',
-  scene: [TerminalScene, BootScene, MainScene],
+  scene: [TerminalScene, BootScene, MainScene, OnchainScene],
   physics: {
     default: 'arcade',
     arcade: {
