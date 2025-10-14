@@ -1,6 +1,6 @@
 const FLASH_DURATION = 111;
 const MEDIUM_FLASH_DURATION = 555;
-const LONG_FLASH_DURATION = 1111;
+const LONG_FLASH_DURATION = 2222;
 const GLITCH_INTERVAL = 7777;
 const SUCCESS_THRESHOLD = 0.69;
 
@@ -438,7 +438,7 @@ export class MainScene extends Phaser.Scene {
     if (success) {
       //this.sound.play('access');
       if (this.flashesEnabled) {
-        this.cameras.main.flash(1111, 0, 255, 0);
+        this.cameras.main.flash(LONG_FLASH_DURATION, 0, 255, 0);
       }
       this.addLog(`ANOMALY CLEAR: BONUS UNLOCKED`);
       this.grantPower(); // define below
@@ -455,7 +455,7 @@ export class MainScene extends Phaser.Scene {
     } else {
       //this.sound.play('glitch');
       if (this.flashesEnabled) {
-        this.cameras.main.flash(1111, 255, 0, 0);
+        this.cameras.main.flash(LONG_FLASH_DURATION, 255, 0, 0);
       }
       this.addLog(`ANOMALY FAILED: DATA LOST`);
       this.anomalyTrigger += 33;
@@ -674,7 +674,7 @@ export class MainScene extends Phaser.Scene {
     if (success) {
       //this.sound.play('access');
       if (this.flashesEnabled) {
-        this.cameras.main.flash(2222, 0, 255, 0);
+        this.cameras.main.flash(LONG_FLASH_DURATION, 0, 255, 0);
       }
       this.addLog(`BLACKSWAN CLEAR`);
       this.addLog(`WE ARE SO BACK`);
@@ -698,7 +698,7 @@ export class MainScene extends Phaser.Scene {
     } else {
       //this.sound.play('glitch');
       if (this.flashesEnabled) {
-        this.cameras.main.flash(2222, 0, 255, 0);
+        this.cameras.main.flash(LONG_FLASH_DURATION, 0, 255, 0);
       }
       this.addLog(`BLACKSWAN CONFIRMED`);
       this.addLog(`MARKET CRASHED`);
