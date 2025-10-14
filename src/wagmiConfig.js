@@ -6,10 +6,13 @@ import { walletConnect, injected, coinbaseWallet } from 'wagmi/connectors';
 export const config = createConfig({
   chains: [baseSepolia],
   connectors: [
-    //walletConnect({ projectId: 'YOUR_PROJECT_ID' }),
+    walletConnect({ projectId: import.meta.env.WC_PROJECT_ID || '' }),
     injected(),
     farcasterFrame(),
-    //coinbaseWallet(),
+    coinbaseWallet({ 
+      appName: 'Kick the Market', 
+      appLogoUrl: 'https://kickthemarket.vercel.app/logo.png' 
+    }),
   ],
   transports: {
     //[base.id]: http(),

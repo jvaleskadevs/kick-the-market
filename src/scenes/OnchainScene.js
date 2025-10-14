@@ -99,6 +99,19 @@ export class OnchainScene extends Phaser.Scene {
       fontSize: '16px',
       fill: green
     }).setOrigin(0.5);
+    
+    // Debug text
+    const debugString = JSON.stringify({
+      systemInfo: this.sys.game.device.os,
+      isAndroid: this.sys.game.device.os.android,
+      isIOs: this.sys.game.device.os.iOS,
+      isTouchable: this.sys.game.device.input.touch
+    }, null, 2);
+    this.debugText = this.add.text(width/2, 550, debugString, {
+      fontFamily: font,
+      fontSize: '16px',
+      fill: green
+    }).setOrigin(0.5);
 
     // Back button
     this.backBtn = this.add.text(width/2, 440, 'BACK TO GAME', {
