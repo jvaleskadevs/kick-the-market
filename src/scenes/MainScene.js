@@ -41,9 +41,14 @@ export class MainScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#000');
 
     if (this.sys.game.device.input.touch) {     
+      this.isMobile = true;
+      /*
       if (this.sys.game.device.os.android || this.sys.game.device.os.iOS) {
         this.isMobile = true;
-      } 
+      } else if (!this.sys.game.device.os.desktop) {
+        this.isMobile = true;
+      }
+      */ 
     }    
 
     const width = window.innerWidth;

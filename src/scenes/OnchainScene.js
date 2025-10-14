@@ -103,10 +103,11 @@ export class OnchainScene extends Phaser.Scene {
     // Debug text
     const debugString = JSON.stringify({
       //systemInfo: this.sys.game.device.os,
-      pid: import.meta.env.WC_PROJECT_ID || 'fail',
+      pid: import.meta.env.VITE_WC_PROJECT_ID || 'fail',
       isAndroid: this.sys.game.device.os.android,
       isIOs: this.sys.game.device.os.iOS,
-      isTouchable: this.sys.game.device.input.touch
+      isTouchable: this.sys.game.device.input.touch,
+      isDesktop: this.sys.game.device.os.desktop
     }, null, 2);
     this.debugText = this.add.text(width/2, 550, debugString, {
       fontFamily: font,

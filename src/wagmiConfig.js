@@ -6,7 +6,7 @@ import { walletConnect, injected, coinbaseWallet } from 'wagmi/connectors';
 export const config = createConfig({
   chains: [baseSepolia],
   connectors: [
-    walletConnect({ projectId: import.meta.env.WC_PROJECT_ID || '' }),
+    walletConnect({ projectId: import.meta.env.VITE_WC_PROJECT_ID || '' }),
     injected(),
     farcasterFrame(),
     coinbaseWallet({ 
