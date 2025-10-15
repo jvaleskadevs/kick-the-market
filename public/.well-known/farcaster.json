@@ -23,7 +23,6 @@
     "ogTitle": "Kick The Market",
     "ogDescription": "Kick the market to go bullish",
     "ogImageUrl": "https://kickthemarket.vercel.app/opengraph-image.png",
-    "webhookUrl": "",
     "requiredChains": [
       "eip155:8453",
       "eip155:84532"

@@ -14,6 +14,7 @@ export class OnchainScene extends Phaser.Scene {
     this.scoreToMint = data?.score || 1;
     this.anomalyLevel = data?.anomalyLevel || 1;
     this.blackSwanLevel = data?.blackSwanLevel || 1;
+    this.totalClicks = data?.totalClicks || 1;
     this.setMintParams = window.phaserGame?.web3Data?.setMintParams || null;
   }
 
@@ -27,8 +28,13 @@ export class OnchainScene extends Phaser.Scene {
     const scene = this;
     this.onMintResult = (e) => {
       const { success, message, hash } = e.detail;
-      
-      this.statusText.setText(message).setColor(success ? '#00ff00' : '#ff0000');
+          
+      if (success) {
+        showSuccessAnimation();
+        this.statusText.setText(message).setColor('#00ff00');
+      } else {
+        this.statusText.setText(message).setColor('#ff0000');
+      }
 
       this.time.delayedCall(4444, () => {
         this.statusText.setText('');
@@ -43,8 +49,9 @@ export class OnchainScene extends Phaser.Scene {
     this.setMintParams({ 
       score: this.scoreToMint, 
       anomalyLevel: this.anomalyLevel, 
-      blackSwanLevel: this.blackSwanLevel, 
-      hash: this.generateScoreHash() 
+      blackSwanLevel: this.blackSwanLevel,
+      totalClicks: this.totalClicks, 
+      hash: this.generateScoreHash()
     });
     this.mintBtn.on('pointerdown', () => {
       document.getElementById('mint-trigger').click();
@@ -133,8 +140,29 @@ export class OnchainScene extends Phaser.Scene {
   
   /// TODO: send to the backend and do a proper signature
   generateScoreHash() {
-    const data = `${this.scoreToMint}-${this.anomalyLevel}-${this.totalClicks}-${Date.now()}`;
+    const data = `${this.scoreToMint}-${this.anomalyLevel}-${this.blackSwanLevel}-${this.totalClicks}`;//-${Date.now()}`;
     return keccak256(toHex(data));
+  }
+  
+  showSuccessAnimation() {
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    
+    for (let i = 0; i < 20; i++) {
+      const x = Math.random() * width;
+      const y = Math.random() * height;
+      const particle = this.add.text(x, y, '✨', { fontSize: '20px' }).setAlpha(0);
+      
+      this.tweens.add({
+        targets: particle,
+        y: y - 100,
+        alpha: { from: 0, to: 1 },
+        duration: 1000,
+        ease: 'Power1',
+        delay: Math.random() * 500,
+        onComplete: () => particle.destroy()
+      });
+    }
   }
   
   goBack() {
@@ -157,27 +185,6 @@ export class OnchainScene extends Phaser.Scene {
       status: 'confirmed'
     });
     localStorage.setItem('mintHistory', JSON.stringify(history));
-  }
-
-  showSuccessAnimation() {
-    const width = this.cameras.main.width;
-    const height = this.cameras.main.height;
-    
-    for (let i = 0; i < 20; i++) {
-      const x = Math.random() * width;
-      const y = Math.random() * height;
-      const particle = this.add.text(x, y, '✨', { fontSize: '20px' }).setAlpha(0);
-      
-      this.tweens.add({
-        targets: particle,
-        y: y - 100,
-        alpha: { from: 0, to: 1 },
-        duration: 1000,
-        ease: 'Power1',
-        delay: Math.random() * 500,
-        onComplete: () => particle.destroy()
-      });
-    }
   }
 */
 }

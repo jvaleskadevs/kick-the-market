@@ -5,6 +5,7 @@ import { baseSepolia } from 'wagmi/chains';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { erc721Abi } from './abis/erc721';
 import Game from './Game';
+import { APP_KEY } from './config';
 import '@rainbow-me/rainbowkit/styles.css';
 import './App.css';
 
@@ -23,9 +24,40 @@ function App() {
   const { writeContract, data, error } = useWriteContract();
   const { switchChain } = useSwitchChain();
 
+  const signProof = async (mintParams, address) => {
+    try {
+      const response = await fetch('/api/sign', {
+        method: 'POST',
+        headers: {
+          'Authorization': APP_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          score: mintParams.score,
+          anomalyLevel: mintParams.anomalyLevel,
+          blackSwanLevel: mintParams.blackSwanLevel,
+          scoreHash: mintParams.hash,
+          totalClicks: mintParams.totalClicks,
+          address
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error);
+      }
+
+      return await response.json();
+    } catch (err) {
+      console.error(err.message);
+    }
+    return { error: "Something went wrong" };
+  };
+
+
   const mintScore = useCallback(
-    () => {
-      if (!mintParams || !mintParams.score || !mintParams.anomalyLevel || !mintParams.blackSwanLevel || !mintParams.hash) {
+    async () => {
+      if (!mintParams || !mintParams.score || !mintParams.anomalyLevel || !mintParams.blackSwanLevel || !mintParams.totalClicks || !mintParams.hash) {
         console.error("missing mintParams", mintParams);
         document.dispatchEvent(
           new CustomEvent('mint-result', {
@@ -33,6 +65,21 @@ function App() {
           })
         );
         return;
+      }
+      
+      const { signature, tokenUri, imageUri } = await signProof(mintParams, address);
+      console.log(signature);
+      console.log(tokenUri);
+      console.log(imageUri);
+      
+      if (!signature || !tokenUri || !imageUri) {
+        console.error("missing proof", { signature, tokenUri, imageUri });
+        document.dispatchEvent(
+          new CustomEvent('mint-result', {
+            detail: { success: false, message: "Missing signature/tokenUri" },
+          })
+        );
+        return;      
       }
 
       switchChain(
@@ -45,10 +92,13 @@ function App() {
               functionName: 'mint',
               chainId: baseSepolia.id,
               args: [ 
+                //tokenUri,                
                 mintParams?.score || '1', 
                 mintParams?.anomalyLevel || '1', 
                 mintParams?.blackSwanLevel || '1', 
+                //mintParams?.totalClicks || '1',
                 mintParams?.hash || DEFAULT_HASH
+                //signature,
               ]
             }, 
             {
@@ -103,10 +153,7 @@ function App() {
 
   useEffect(() => {
     const handleOpenConnectModal = async () => {
-      if (address && isConnected) {
-        //await mintScore(111, 1, 2, '0x0000000000000000000000000000000000000000000000000000000000000000');
-        console.log('test');
-      } else {
+      if (!address || !isConnected) {
         const connectWalletBtn = document.querySelector('[data-testid="rk-connect-button"]');
         if (connectWalletBtn) {
           connectWalletBtn.click();
