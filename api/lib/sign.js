@@ -1,7 +1,7 @@
-import { generateScoreHash } from "../generateScoreHash.js";
-import { signProof } from "../signProof.js";
-import { uploadNftToIpfs, uploadImageToIpfs } from "../lighthouse.js";
-import { APP_KEY, LIGHTHOUSE_URL } from "../../config.js";
+import { generateScoreHash } from "./generateScoreHash.js";
+import { signProof } from "./signProof.js";
+import { uploadNftToIpfs, uploadImageToIpfs } from "./lighthouse.js";
+import { APP_KEY, LIGHTHOUSE_URL } from "./config.js";
 
 export async function signScore(req, res) {
   const {
@@ -39,7 +39,10 @@ export async function signScore(req, res) {
       }
     };
     console.log(metadata);
-    
+
+    let imageUri = await uploadImageToIpfs("");   /// TODO pass image  
+    metadata.imageUri = imageUri.replace("ipfs://", LIGHTHOUSE_URL);
+    console.log(imageUri);     
     let tokenUri = await uploadNftToIpfs(metadata);    
     tokenUri = tokenUri.replace("ipfs://", LIGHTHOUSE_URL);
     console.log(tokenUri);    

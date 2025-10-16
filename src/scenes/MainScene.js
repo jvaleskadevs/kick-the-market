@@ -878,12 +878,12 @@ export class MainScene extends Phaser.Scene {
     this.settingsMenu.setVisible(false);
 
     // Menu background
-    const bg = this.add.rectangle(0, 0, 300, 300, 0x000000, 0.9);
+    const bg = this.add.rectangle(0, 0, 300, 400, 0x000000, 0.9);
     bg.setStrokeStyle(1, 0x00ff00);
     this.settingsMenu.add(bg);
 
     // Title
-    const title = this.add.text(0, -100, 'SETTINGS', {
+    const title = this.add.text(0, -140, 'SETTINGS', {
       fontFamily: font,
       fontSize: '18px',
       fill: greenColor
@@ -891,12 +891,20 @@ export class MainScene extends Phaser.Scene {
     this.settingsMenu.add(title);
 
     // Mint Score button
-    const mintBtn = this.add.text(0, -40, 'MINT SCORE', {
+    const mintBtn = this.add.text(0, -80, 'MINT SCORE', {
       fontFamily: font,
       fontSize: '16px',
       fill: greenColor
     }).setOrigin(0.5).setInteractive();
     this.settingsMenu.add(mintBtn);
+        
+    // Leaderboard button
+    const lbBtn = this.add.text(0, -40, 'LEADERBOARD', {
+      fontFamily: font,
+      fontSize: '16px',
+      fill: greenColor
+    }).setOrigin(0.5).setInteractive();
+    this.settingsMenu.add(lbBtn);
 
     // Audio toggle
     this.audioText = this.add.text(0, 0, `AUDIO: ${this.audioEnabled ? 'ON' : 'OFF'}`, {
@@ -948,6 +956,13 @@ export class MainScene extends Phaser.Scene {
     this.skinModText.on('pointerdown', () => {
       this.skinModEnabled = !this.skinModEnabled;
       this.skinModText.setText(`SKIN MOD: ${this.skinModEnabled ? 'ON' : 'OFF'}`);
+    });
+
+    lbBtn.on('pointerdown', () => {
+      this.scene.launch('LeaderboardScene');
+      
+      // Pause main game
+      this.scene.pause();
     });
     
     mintBtn.on('pointerdown', () => {

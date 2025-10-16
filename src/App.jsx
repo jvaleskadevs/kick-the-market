@@ -5,12 +5,12 @@ import { baseSepolia } from 'wagmi/chains';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { erc721Abi } from './abis/erc721';
 import Game from './Game';
-import { APP_KEY } from './config';
+import { APP_KEY, KTM_SCORE_NFT_ADDRESS } from './config';
 import '@rainbow-me/rainbowkit/styles.css';
 import './App.css';
 
-const GAME_SCORE_NFT_ADDRESS = '0x3BEB5a1A7a6d5A77f0e570a68EF35580106E455F';
-const DEFAULT_HASH = '0x0000000000000000000000000000000000000000000000000000000000000001';
+const GAME_SCORE_NFT_ADDRESS = KTM_SCORE_NFT_ADDRESS;
+//const DEFAULT_HASH = '0x0000000000000000000000000000000000000000000000000000000000000001';
 
 function App() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
@@ -71,7 +71,7 @@ function App() {
       console.log(signature);
       console.log(tokenUri);
       console.log(imageUri);
-      
+
       if (!signature || !tokenUri || !imageUri) {
         console.error("missing proof", { signature, tokenUri, imageUri });
         document.dispatchEvent(
@@ -92,13 +92,13 @@ function App() {
               functionName: 'mint',
               chainId: baseSepolia.id,
               args: [ 
-                //tokenUri,                
+                tokenUri,                
                 mintParams?.score || '1', 
                 mintParams?.anomalyLevel || '1', 
                 mintParams?.blackSwanLevel || '1', 
-                //mintParams?.totalClicks || '1',
-                mintParams?.hash || DEFAULT_HASH
-                //signature,
+                mintParams?.totalClicks || '1',
+                //mintParams?.hash || DEFAULT_HASH
+                signature
               ]
             }, 
             {
