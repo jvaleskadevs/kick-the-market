@@ -145,7 +145,7 @@ function App() {
 
 
   const mintScore = useCallback(
-    async (isFreeMint) => {
+    async () => {
       if (!mintParams || !mintParams.score || !mintParams.anomalyLevel || !mintParams.blackSwanLevel || !mintParams.totalClicks || !mintParams.hash) {
         console.error("missing mintParams", mintParams);
         document.dispatchEvent(
