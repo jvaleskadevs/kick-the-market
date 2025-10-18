@@ -4,6 +4,7 @@ export class LeaderboardScene extends Phaser.Scene {
   constructor() {
     super('LeaderboardScene');
     this.leaderboardData = [];
+    this.currentLeaderboardTab = "free";
     this.isLoading = true;
   }
 
@@ -44,6 +45,34 @@ export class LeaderboardScene extends Phaser.Scene {
       }
     }).setOrigin(0.5).setDepth(10);
 
+    // FREE Leadearboard button
+    const freeLeaderboardButton = this.add.text((width / 2) - 200, 100, 'FREE LEAGUE', {
+      fontFamily: font,
+      fontSize: '18px',
+      fill: greenColor,
+      backgroundColor: '#000',
+      padding: { left: 10, right: 10, top: 5, bottom: 5 }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    freeLeaderboardButton.on('pointerdown', () => {
+      this.currentLeaderboardTab = 'free';
+      this.fetchLeaderboard();
+    });
+        
+    // PAID Leadearboard button
+    const paidLeaderboardButton = this.add.text((width / 2) + 200, 100, 'ETH LEAGUE', {
+      fontFamily: font,
+      fontSize: '18px',
+      fill: greenColor,
+      backgroundColor: '#000',
+      padding: { left: 10, right: 10, top: 5, bottom: 5 }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    paidLeaderboardButton.on('pointerdown', () => {
+      this.currentLeaderboardTab = 'paid';
+      this.fetchLeaderboard();
+    });
+
     // Back button
     const backButton = this.add.text(width / 2, height - 60, 'BACK', {
       fontFamily: font,
@@ -67,23 +96,31 @@ export class LeaderboardScene extends Phaser.Scene {
       strokeThickness: 2
     }).setOrigin(0.5);
 
-    // Fetch leaderboard
-    getLeaderboard().then(data => {
+    this.leaderboardContainer = this.add.container();
+    this.leaderboardGraphics = [];
+
+    this.fetchLeaderboard();
+  }
+  
+  fetchLeaderboard() {
+    getLeaderboard(this.currentLeaderboardTab).then(data => {
       this.isLoading = false;
       this.loadingText.destroy();
+      this.clearLeaderboard();
 
       if (data.length === 0) {
-        this.add.text(width / 2, height / 2, 'NO DATA', {
+        const text = this.add.text(width / 2, height / 2, 'NO DATA', {
           fontFamily: font,
           fontSize: '20px',
           fill: '#f00'
         }).setOrigin(0.5);
+        this.leaderboardContainer.add(text);
         return;
       }
 
       this.leaderboardData = data;
       this.displayLeaderboard();
-    });
+    });  
   }
 
   displayLeaderboard() {
@@ -106,66 +143,74 @@ export class LeaderboardScene extends Phaser.Scene {
     ];
 
     headers.forEach(h => {
-      this.add.text(h.x, startY, h.text, {
+      const header = this.add.text(h.x, startY, h.text, {
         fontFamily: font,
         fontSize: '16px',
         fill: '#0ff',
         stroke: '#003333',
         strokeThickness: 1
       }).setOrigin(0);
+      this.leaderboardContainer.add(header);
     });
 
     // Divider line
     const line = this.add.graphics();
     line.lineStyle(1, 0x00ff00, 0.5);
     line.lineBetween(50, startY + 20, width - 50, startY + 20);
+    this.leaderboardGraphics.push(line);
 
     // Rows
     this.leaderboardData.forEach((entry, index) => {
       const y = startY + 40 + (index * rowHeight);
 
       // Rank
-      this.add.text(60, y, `${index + 1}.`, {
+      const rankText = this.add.text(60, y, `${index + 1}.`, {
         fontFamily: font,
         fontSize: '16px',
         fill: index === 0 ? '#0f0' : '#0f9'
       }).setOrigin(0);
+      this.leaderboardContainer.add(rankText);
 
       // Shortened address
       const shortAddr = entry.to ? `${entry.to.slice(0, 6)}...${entry.to.slice(-4)}` : 'ANON';
-      this.add.text(180, y, shortAddr, {
+      const addressText = this.add.text(180, y, shortAddr, {
         fontFamily: font,
         fontSize: '16px',
         fill: '#0f9'
       }).setOrigin(0);
+      this.leaderboardContainer.add(addressText);
 
       // Score
-      this.add.text(360, y, `${entry.score || 0}`, {
+      const scoreText = this.add.text(360, y, `${entry.score || 0}`, {
         fontFamily: font,
         fontSize: '16px',
         fill: '#0f0'
       }).setOrigin(0);
+      this.leaderboardContainer.add(scoreText);      
 
       // Anomaly Level
-      this.add.text(460, y, `${entry.anomalyLevel || 0}`, {
+      const anomalyText = this.add.text(460, y, `${entry.anomalyLevel || 0}`, {
         fontFamily: font,
         fontSize: '16px',
         fill: '#0f9'
       }).setOrigin(0);
+      this.leaderboardContainer.add(anomalyText);
 
       // BlackSwan Level
-      this.add.text(560, y, `${entry.blackSwanLevel || 0}`, {
+      const blackSwanText = this.add.text(560, y, `${entry.blackSwanLevel || 0}`, {
         fontFamily: font,
         fontSize: '16px',
         fill: '#0f9'
       }).setOrigin(0);
+      this.leaderboardContainer.add(blackSwanText);
       
       // totalKicks
-      this.add.text(660, y, `${entry.totalKicks || 0}`, {
+      const kicksText = this.add.text(660, y, `${entry.totalKicks || 0}`, {
         fontFamily: font,
         fontSize: '16px',
         fill: '#0f9'
       }).setOrigin(0);
+      this.leaderboardContainer.add(kicksText);
     });
 
     // Add scanline overlay for style
@@ -174,10 +219,19 @@ export class LeaderboardScene extends Phaser.Scene {
     for (let y = 0; y < height; y += 4) {
       scanlines.lineBetween(0, y, width, y);
     }
+    this.leaderboardGraphics.push(scanlines);
   }
+  
+  clearLeaderboard() {
+    if (this.leaderboardContainer) {
+      this.leaderboardContainer.removeAll(true);
+    }
+
+    this.leaderboardGraphics.forEach(graphic => graphic.destroy());
+    this.leaderboardGraphics = [];
+  }  
 
   update() {
-    // Optional: add subtle glitch effect
     if (this.isLoading) return;
 
     if (Math.random() < 0.001) {

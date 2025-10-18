@@ -21,7 +21,7 @@ export class OnchainScene extends Phaser.Scene {
   create() {
     this.addEventListeners();
     this.setupUI();
-    this.createMintButton();
+    this.createMintButtons();
   }
   
   addEventListeners() {
@@ -30,7 +30,7 @@ export class OnchainScene extends Phaser.Scene {
       const { success, message, hash } = e.detail;
           
       if (success) {
-        showSuccessAnimation();
+        this.showSuccessAnimation('✨');
         this.statusText.setText(message).setColor('#00ff00');
       } else {
         this.statusText.setText(message).setColor('#ff0000');
@@ -41,21 +41,60 @@ export class OnchainScene extends Phaser.Scene {
       });
     }
     
+    this.onJackpotResult = (e) => {
+      const { success, message } = e.detail;
+          
+      if (success) {
+        this.showSuccessAnimation('🎉️');
+        this.jackpotText.setText(message).setColor('#00ff00');
+      } else {
+        this.jackpotText.setText(message).setColor('#ff0000');
+      }
+
+      this.time.delayedCall(4444, () => {
+        this.jackpotText.setText('');
+      });
+    }
+    
     document.addEventListener('mint-result', this.onMintResult);
+    document.addEventListener('jackpot-result', this.onJackpotResult);
   }
   
-  createMintButton() {
+  createMintButtons() {
+    // free mint button
     this.mintBtn.setInteractive().setAlpha(1);
-    this.setMintParams({ 
-      score: this.scoreToMint, 
-      anomalyLevel: this.anomalyLevel, 
-      blackSwanLevel: this.blackSwanLevel,
-      totalClicks: this.totalClicks, 
-      hash: this.generateScoreHash()
-    });
     this.mintBtn.on('pointerdown', () => {
-      document.getElementById('mint-trigger').click();
+      this.setMintParams({ 
+        score: this.scoreToMint, 
+        anomalyLevel: this.anomalyLevel, 
+        blackSwanLevel: this.blackSwanLevel,
+        totalClicks: this.totalClicks, 
+        hash: this.generateScoreHash(),
+        isFree: true
+      });
       this.statusText.setText('Minting... Please, confirm in your wallet.').setColor('#00ff00');
+
+      this.time.delayedCall(1111, () => {
+        document.getElementById('mint-trigger').click();
+      });
+    });
+    
+    // paid mint button
+    this.paidMintBtn.setInteractive().setAlpha(1);
+    this.paidMintBtn.on('pointerdown', () => {
+      this.setMintParams({ 
+        score: this.scoreToMint, 
+        anomalyLevel: this.anomalyLevel, 
+        blackSwanLevel: this.blackSwanLevel,
+        totalClicks: this.totalClicks, 
+        hash: this.generateScoreHash(),
+        isFree: false
+      });
+      this.statusText.setText('Minting... Please, confirm in your wallet.').setColor('#00ff00');
+
+      this.time.delayedCall(1111, () => {
+        document.getElementById('mint-trigger').click();
+      });
     });
   }
 
@@ -92,7 +131,16 @@ export class OnchainScene extends Phaser.Scene {
     }).setOrigin(0.5).setInteractive();
 
     // Mint button
-    this.mintBtn = this.add.text(width/2, 300, 'MINT SCORE', {
+    this.mintBtn = this.add.text(width/2, 300, 'FREE MINT SCORE', {
+      fontFamily: font,
+      fontSize: '18px',
+      fill: '#333',
+      backgroundColor: green,
+      padding: { x: 20, y: 10 }
+    }).setOrigin(0.5).setInteractive();
+    
+    // Paid Mint button
+    this.paidMintBtn = this.add.text(width/2, 380, 'PAID MINT SCORE', {
       fontFamily: font,
       fontSize: '18px',
       fill: '#333',
@@ -101,7 +149,14 @@ export class OnchainScene extends Phaser.Scene {
     }).setOrigin(0.5).setInteractive();
     
     // Status text
-    this.statusText = this.add.text(width/2, 380, '', {
+    this.statusText = this.add.text(width/2, 420, '', {
+      fontFamily: font,
+      fontSize: '16px',
+      fill: green
+    }).setOrigin(0.5);
+    
+    // Status text
+    this.jackpotText = this.add.text(width/2, 460, '', {
       fontFamily: font,
       fontSize: '16px',
       fill: green
@@ -122,7 +177,7 @@ export class OnchainScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Back button
-    this.backBtn = this.add.text(width/2, 440, 'BACK TO GAME', {
+    this.backBtn = this.add.text(width/2, 460, 'BACK TO GAME', {
       fontFamily: font,
       fontSize: '16px',
       fill: green
@@ -138,28 +193,27 @@ export class OnchainScene extends Phaser.Scene {
     document.dispatchEvent(new Event('open-wallet-modal'));
   }
   
-  /// TODO: send to the backend and do a proper signature
   generateScoreHash() {
     const data = `${this.scoreToMint}-${this.anomalyLevel}-${this.blackSwanLevel}-${this.totalClicks}`;//-${Date.now()}`;
     return keccak256(toHex(data));
   }
   
-  showSuccessAnimation() {
+  showSuccessAnimation(particleEmoji) {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
     
     for (let i = 0; i < 20; i++) {
       const x = Math.random() * width;
       const y = Math.random() * height;
-      const particle = this.add.text(x, y, '✨', { fontSize: '20px' }).setAlpha(0);
+      const particle = this.add.text(x, y, particleEmoji, { fontSize: '20px' }).setAlpha(0);
       
       this.tweens.add({
         targets: particle,
         y: y - 100,
         alpha: { from: 0, to: 1 },
-        duration: 1000,
+        duration: 1111,
         ease: 'Power1',
-        delay: Math.random() * 500,
+        delay: Math.random() * 420,
         onComplete: () => particle.destroy()
       });
     }
@@ -172,19 +226,6 @@ export class OnchainScene extends Phaser.Scene {
   
   shutdown() {
     document.removeEventListener('mint-result', this.onMintResult);
+    document.removeEventListener('jackpot-result', this.onJackpotResult);
   }
-/*  
-  saveMintHistory(txHash, score, anomalyLvl, blackSwanLvl) {
-    const history = JSON.parse(localStorage.getItem('mintHistory') || '[]');
-    history.push({
-      txHash,
-      score,
-      anomalyLvl,
-      blackSwanLvl,
-      timestamp: Date.now(),
-      status: 'confirmed'
-    });
-    localStorage.setItem('mintHistory', JSON.stringify(history));
-  }
-*/
 }

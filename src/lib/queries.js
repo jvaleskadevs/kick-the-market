@@ -1,6 +1,7 @@
 export const leaderboardQuery = `
-query LeaderboardQuery {
-  KickTheMarket_Mint(limit: 50, order_by: {score: desc}) {
+query LeaderboardQuery($ktm: String!) {
+  KickTheMarket_Mint(where: {address: {_eq: $ktm}}, limit: 50, order_by: {score: desc}) {
+    address
     anomalyLevel
     blackSwanLevel
     score

@@ -3,7 +3,7 @@ import { LIGHTHOUSE_URL } from "../config.js";
 
 export async function uploadNftToIpfs(metadata) {
   console.log("test-success");
-  return "ipfs://placeholder";
+  return "ipfs://placeholder/" + Math.floor(Math.random() * 123456790);
   if (!metadata || !metadata?.properties || !process.env.LIGHTHOUSE_API_KEY) return "";
   
   try {
@@ -45,7 +45,7 @@ export async function uploadNftToIpfs(metadata) {
 
 export async function uploadImageToIpfs(image, name) {
   console.log("test-success");
-  return "ipfs://placeholder/image";
+  return "ipfs://placeholder/image/" + Math.floor(Math.random() * 123456790);
   if (!image || !name) return "";
 
   try {
@@ -77,7 +77,7 @@ export async function uploadImageToIpfs(image, name) {
   }
   return "";
 }
-
+/*
 export async function uploadVideoToIpfs(video, name) {
   if (!video || !name) return "";
   
@@ -111,3 +111,4 @@ export async function uploadVideoToIpfs(video, name) {
   }  
   return "";
 }
+*/

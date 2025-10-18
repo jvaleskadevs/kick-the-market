@@ -896,7 +896,7 @@ export class MainScene extends Phaser.Scene {
       fontSize: '16px',
       fill: greenColor
     }).setOrigin(0.5).setInteractive();
-    this.settingsMenu.add(mintBtn);
+    this.settingsMenu.add(mintBtn);    
         
     // Leaderboard button
     const lbBtn = this.add.text(0, -40, 'LEADERBOARD', {
