@@ -1,0 +1,255 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC721Burnable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import {ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import "@pythnetwork/entropy-sdk-solidity/IEntropyV2.sol";
+import "@pythnetwork/entropy-sdk-solidity/IEntropyConsumer.sol";
+import "./interfaces/IJackpot.sol";
+
+/**
+ * @title Kick The Market · Game Score NFT
+ * @dev A simple ERC721 contract to mint NFTs representing game scores.
+ * Every minted score get a chance of 1/69 to get 6.9% jackpot prize.
+ * Each NFT requires:
+ * - tokenUri: the metadata uri for the token being minted
+ * - score: the player's score
+ * - anomalyLevel: the anomaly level reached by the player
+ * - blackSwanLevel: the blackswan level reached by the player
+ * - totalKicks: the total number of kicks
+ * - proof: a signature to verify the game data
+ *
+ */
+contract KickTheMarket is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Burnable, IEntropyConsumer, IJackpot {
+    using ECDSA for bytes32;
+
+    uint256 private _nextTokenId;
+    address public immutable backendSigner;
+    
+    uint256 public mintPrice = 0;
+
+    // Required by our Jackpot SDK
+    address jackpotAddressBaseSepolia = 0x41c9e39574F40Ad34c79f1C99B66A45eFB830d4c;
+    IJackpot jackpot;
+    
+    // Required by Pyth Entropy SDK
+    address entropyAddressBaseSepolia = 0x41c9e39574F40Ad34c79f1C99B66A45eFB830d4c;
+    IEntropyV2 entropy;
+
+    mapping(uint64 => address) private sequenceNumberToPlayer;
+    mapping(bytes32 => bool) private usedProofs;
+    
+
+    // Structure to store score data
+    struct ScoreData {
+        uint256 score;
+        uint256 anomalyLevel;
+        uint256 blackSwanLevel;
+        uint256 totalKicks;
+        bytes proof;
+        address player;
+    }
+
+    // Mapping from token ID to score data
+    mapping(uint256 => ScoreData) public scoreData;
+
+    // Emitted when a new score NFT is minted
+    event Mint(
+        uint256 indexed tokenId,
+        address indexed to,
+        uint256 score,
+        uint256 anomalyLevel,
+        uint256 blackSwanLevel,
+        uint256 totalKicks,    
+        bytes proof
+    );
+    
+    event RandomNumberRequested(uint64 sequenceNumber, address player);
+    event RandomNumberResult(uint64 sequenceNumber, bool isWinner, uint256 randomNumber);
+
+    /**
+     * @dev Initializes the ERC721 token with name "GameScore" and symbol "GSNFT"
+     */
+    constructor(uint256 _mintPrice) ERC721("Kick The Market", "KTM") {
+        backendSigner = msg.sender;
+        jackpot = IJackpot(jackpotAddressBaseSepolia);
+        entropy = IEntropyV2(entropyAddressBaseSepolia);
+        mintPrice = _mintPrice;
+    }
+
+    /**
+     * @notice Mints a new NFT with the given score data.
+     * @dev Anyone can call this function with valid game data.
+     *
+     * @param score The game score.
+     * @param anomalyLevel The anomaly level.
+     * @param blackSwanLevel The black swan level.
+     * @param proof A hash to verify associated game data.
+     *
+     * @return the tokenId of the nft being minted
+     */
+    function mint(
+        string memory tokenUri,
+        uint256 score,
+        uint256 anomalyLevel, 
+        uint256 blackSwanLevel,
+        uint256 totalKicks,
+        bytes memory proof
+    ) public payable returns (uint256) {
+        require(score > 0, "GameScoreNFT: score must be greater than zero");
+
+        uint256 tokenId = _nextTokenId++;
+        address to = msg.sender;
+        
+        _verifyProof(proof, tokenUri, to);
+        _requestRandomNumber(to);
+        _transferToJackpot();
+
+        _setTokenURI(tokenId, tokenUri);
+        _safeMint(to, tokenId);
+
+        scoreData[tokenId] = ScoreData({
+            score: score,
+            anomalyLevel: anomalyLevel,
+            blackSwanLevel: blackSwanLevel,
+            totalKicks: totalKicks,
+            proof: proof,
+            player: to
+        });
+
+        emit Mint(tokenId, to, score, anomalyLevel, blackSwanLevel, totalKicks, proof);
+        
+        return tokenId;
+    }
+    
+    function _transferToJackpot() internal {
+        // after requested fee for entropy is taken,
+        // the 6.9% of the remaining is sent to the jackpot
+        uint256 amount = msg.value * 69 / 1000;
+        jackpot.increaseJackpot{value: amount}("");
+        
+        emit JackpotIncreased(amount, msg.sender);     
+    }
+
+    /**
+     * @notice Verify that uri has been created and signed on our backend
+     */
+    function _verifyProof(bytes memory proof, string memory uri, address sender) internal {
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(
+                block.chainid,
+                uri,
+                sender
+            )
+        );        
+        
+        address signer = MessageHashUtils.toEthSignedMessageHash(messageHash).recover(proof);
+        require(signer == backendSigner, "Invalid signature");
+        
+        require(!usedProofs[messageHash], "Already used");
+        usedProofs[messageHash] = true;
+    }
+    
+    /**
+     * @notice Returns the total number of NFTs minted.. so far.
+     * @return The total supply.
+     */
+    function totalSupply() public override view returns (uint256) {
+        return _nextTokenId;
+    }
+    
+    function _requestRandomNumber(address player) internal {
+      // get the required fee
+      uint128 requestFee = entropy.getFeeV2();
+      // check if the user has sent enough fees
+      if (msg.value < requestFee + mintPrice) revert("not enough fees");
+   
+      // pay the fees and request a random number from entropy
+      uint64 sequenceNumber = entropy.requestV2{ value: requestFee }();      
+      sequenceNumberToPlayer[sequenceNumber] = player;
+   
+      // emit event
+      emit RandomNumberRequested(sequenceNumber, player);
+    }  
+    
+    function entropyCallback(
+      uint64 sequenceNumber,
+      address /*_providerAddress*/,
+      bytes32 randomNumber
+    ) internal override {
+      bool isWinner = uint256(randomNumber) % 69 == 0; // 1/69 odds
+      
+      if (isWinner) {
+
+          address winner = sequenceNumberToPlayer[sequenceNumber];
+          
+          Jackpot.sendPrizeTo(winner);
+ 
+          /*
+          uint256 prize = address(this).balance * 69 / 1000; // 6.9% of current balance         
+          (bool success, ) = winner.call{value: prize}("");
+          require(success, "prize transfer failed");
+          */
+          
+          emit JackpotWinner(winner, prize, address(this));
+      }
+   
+      emit RandomNumberResult(sequenceNumber, isWinner, uint256(randomNumber));
+    }
+    
+    // This method is required by the IEntropyConsumer interface
+    function getEntropy() internal view override returns (address) {
+      return address(entropy);
+    }
+
+    /**
+     * @dev Blocks any accidental ETH transfers to the contract.
+     */
+    receive() external payable {
+        revert("KickTheMarket: does not accept ETH");
+    }
+
+    fallback() external payable {
+        revert("KickTheMarket: fallback not allowed");
+    }
+
+    // The following functions are overrides required by Solidity.
+
+    function _update(address to, uint256 tokenId, address auth)
+        internal
+        override(ERC721, ERC721Enumerable)
+        returns (address)
+    {
+        return super._update(to, tokenId, auth);
+    }
+
+    function _increaseBalance(address account, uint128 value)
+        internal
+        override(ERC721, ERC721Enumerable)
+    {
+        super._increaseBalance(account, value);
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
+    {
+        return super.tokenURI(tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721Enumerable, ERC721URIStorage)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+}
+

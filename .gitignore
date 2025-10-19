@@ -2,3 +2,10 @@
 /node_modules
 /public/assets/exclude
 /localserver
+
+/contracts/hardhat-contracts/cache
+/contracts/hardhat-contracts/artifacts
+/contracts/hardhat-contracts/dist
+/contracts/hardhat-contracts/bundle
+/contracts/hardhat-contract/types
+/contracts/hardhat-contracts/coverage
