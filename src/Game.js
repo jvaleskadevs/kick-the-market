@@ -4,6 +4,7 @@ import { MainScene } from './scenes/MainScene';
 import { TerminalScene } from './scenes/TerminalBoot';
 import { OnchainScene } from './scenes/OnchainScene';
 import { LeaderboardScene } from './scenes/LeaderboardScene';
+import { SponsorsScene } from './scenes/SponsorsScene';
 
 
 class Game {
@@ -21,7 +22,7 @@ class Game {
       },
       pixelArt: true,
       backgroundColor: '#000000',
-      scene: [TerminalScene, BootScene, MainScene, OnchainScene, LeaderboardScene],
+      scene: [TerminalScene, BootScene, MainScene, OnchainScene, LeaderboardScene, SponsorsScene],
       physics: {
         default: 'arcade',
         arcade: {

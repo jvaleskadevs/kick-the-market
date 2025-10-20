@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import sdk from "@farcaster/frame-sdk";
-import { parseEventLogs } from 'viem'; 
+import { parseEventLogs, parseEther } from 'viem'; 
 import { useAccount, useBalance, useReadContract, useWaitForTransactionReceipt, useWatchContractEvent, useWriteContract, useSwitchChain } from 'wagmi';
 import { baseSepolia } from 'wagmi/chains';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -25,6 +25,7 @@ function App() {
   const [context, setContext] = useState();
   const [hapticsOn, setHapticsOn] = useState(false);
   const [mintParams, setMintParams] = useState(null);
+  const [sponsorParams, setSponsorParams] = useState(null);
   const [txHash, setTxHash] = useState(null);
   const [ticketId, setTicketId] = useState(null);
   
@@ -54,7 +55,6 @@ function App() {
     functionName: 'currentAds',
     chainId: baseSepolia.id,
   });
-  console.log(sponsors);
   
   const { data: walletBalance } = useBalance({
     address,
@@ -262,6 +262,94 @@ function App() {
     [writeContract, mintParams, switchChain, jackpotFee, mintPrice, address]
   );
   
+  const sponsorize = useCallback(
+    async () => {
+      if (!sponsorParams || !sponsorParams.name || !sponsorParams.description || !sponsorParams.cta || !sponsorParams.website || !sponsorParams.logoUrl || !sponsorParams.tier) {
+        console.error("missing sponsorParams", sponsorParams);
+        document.dispatchEvent(
+          new CustomEvent('sponsorize-result', {
+            detail: { success: false, message: "Missing sponsor data" },
+          })
+        );
+        return;
+      }
+      
+      console.log(sponsorParams);
+      const requiredETH = sponsorParams.tier === "gold" ? 
+        parseEther('0.01') :
+          sponsorParams.tier === "silver" ? 
+            parseEther('0.0069') : parseEther('0.0042');
+      console.log("requiredETH", requiredETH);
+      
+      const sponsorTier = sponsorParams.tier === "gold" ? 
+        BigInt(0) :
+          sponsorParams.tier === "silver" ? 
+            BigInt(1) : BigInt(2);
+      
+      if (walletBalance && walletBalance.value < requiredETH) {
+        document.dispatchEvent(
+          new CustomEvent('sponsorize-result', {
+            detail: { success: false, message: "Insufficient ETH for sponsorship tier" },
+          })
+        );
+        return;
+      }
+
+      switchChain(
+        { chainId: baseSepolia.id },
+        { 
+          onSuccess: () => {
+            writeContract({
+              address: SPONSORS_ADDRESS,
+              abi: sponsorsAbi,
+              functionName: 'sponsorize',
+              chainId: baseSepolia.id,
+              args: [ 
+                '1', // TODO: select future weeks
+                sponsorTier,
+                sponsorParams.name,
+                sponsorParams.cta,
+                sponsorParams.description,
+                sponsorParams.website,
+                sponsorParams.logoUrl
+              ],
+              value: requiredETH
+            }, 
+            {
+              onSuccess: async (hash) => {
+                console.log('hash', hash);
+                document.dispatchEvent(
+                  new CustomEvent('sponsorize-result', {
+                    detail: { success: true, message: "Success " + hash, hash },
+                  })
+                );                
+                setTxHash(hash);
+                setSponsorParams(null);
+              },
+              onError: (e) => {
+                console.error('error', e);
+                document.dispatchEvent(
+                  new CustomEvent('sponsorize-result', {
+                    detail: { success: false, message: e.shortMessage || e.message },
+                  })
+                );
+              }
+            })
+          },
+          onError: (err) => {
+            console.error('Error changing network:', err);
+            document.dispatchEvent(
+              new CustomEvent('sponsorize-result', {
+                detail: { success: false, message: 'Failed to switch to Base' },
+              })
+            );
+          }
+        }
+      )
+    },
+    [writeContract, sponsorParams, switchChain, address]
+  );
+  
   useEffect(() => {
     function parseLogsFromReceipt() {
       let ticketId = null;
@@ -346,7 +434,7 @@ function App() {
   useEffect(() => {
     if (gameRef.current && !window.phaserGame) {
       window.phaserGame = new Game(
-        gameRef.current, { address, isConnected, mintScore, setMintParams, sponsors }
+        gameRef.current, { address, isConnected, mintScore, setMintParams, setSponsorParams, sponsors }
       );
     }
 
@@ -356,7 +444,7 @@ function App() {
         window.phaserGame = null;
       }
     };
-  }, [isConnected, address, setMintParams, sponsors]);
+  }, [isConnected, address, setMintParams, setSponsorParams, sponsors]);
 
   return (
     <div className="App">
@@ -368,6 +456,13 @@ function App() {
         onClick={mintScore}
       >
         Mint
+      </button>
+      <button
+        id="sponsor-trigger"
+        style={{ position: 'absolute', left: -9999, pointerEvents: 'none' }}
+        onClick={sponsorize}
+      >
+        Sponsorize
       </button>
     </div>
   );

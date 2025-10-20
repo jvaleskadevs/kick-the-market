@@ -13,9 +13,7 @@ export class LeaderboardScene extends Phaser.Scene {
   init(data) {
     this.adsContainer = this.add.container();
     this.sponsorAds = this.game.web3Data.sponsors;  
-    console.log(this.game.web3Data);
     this.displaySponsorAds(this.game.web3Data.sponsors);  
-    console.log("init"); 
   }
 
   preload() {
@@ -23,8 +21,6 @@ export class LeaderboardScene extends Phaser.Scene {
   }
 
   create() {
-    console.log("create");
-    console.log(this.sponsorAds);
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
@@ -54,7 +50,7 @@ export class LeaderboardScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(10);
 
     // FREE Leadearboard button
-    const freeLeaderboardButton = this.add.text((width / 2) - 200, 100, 'FREE LEAGUE', {
+    const freeLeaderboardButton = this.add.text((width / 2) - 150, 100, 'FREE LEAGUE', {
       fontFamily: font,
       fontSize: '18px',
       fill: greenColor,
@@ -68,7 +64,7 @@ export class LeaderboardScene extends Phaser.Scene {
     });
         
     // PAID Leadearboard button
-    const paidLeaderboardButton = this.add.text((width / 2) + 200, 100, 'ETH LEAGUE', {
+    const paidLeaderboardButton = this.add.text((width / 2) + 150, 100, 'ETH LEAGUE', {
       fontFamily: font,
       fontSize: '18px',
       fill: greenColor,
@@ -82,7 +78,7 @@ export class LeaderboardScene extends Phaser.Scene {
     });
 
     // Back button
-    const backButton = this.add.text(width / 2, height - 60, 'BACK', {
+    const backButton = this.add.text(width / 2, height - 40, 'BACK', {
       fontFamily: font,
       fontSize: '18px',
       fill: greenColor,
@@ -134,16 +130,7 @@ export class LeaderboardScene extends Phaser.Scene {
       //this.fetchSponsors();
     });  
   }
-/*  
-  fetchSponsors() {
-    getSponsors().then(data => {
-      this.clearAds();
 
-      this.sponsorAds = data;
-      this.displaySponsorAds();
-    });  
-  }
-*/
   displayLeaderboard() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
@@ -259,7 +246,7 @@ export class LeaderboardScene extends Phaser.Scene {
       160 + (this.leaderboardData.length * 30) + 40 : 
       height / 2;
 
-    const AdsHeader = this.add.text(width / 2, lastRow + 40, 'SPONSORED BY', {
+    const AdsHeader = this.add.text(width / 2, lastRow + 20, 'SPONSORED BY', {
       fontFamily: font,
       fontSize: '24px',
       fill: greenColor,
@@ -309,6 +296,27 @@ export class LeaderboardScene extends Phaser.Scene {
       const x = (width / 2 - adWidth / 2) + spacing + (i - 3) * (bronzeW + spacing) + bronzeW / 2;
       this.renderSponsorAd(this.sponsorAds[i], bronzeW, 120, x - 20, y, 1);
     }
+    y += 70;
+    
+    const adsFooter = this.add.text(width / 2, y, 'WANT TO ANNOUNCE HERE?->', {
+      fontFamily: font,
+      fontSize: '16px',
+      fill: greenColor,
+      stroke: '#003300',
+      strokeThickness: 1,
+      shadow: {
+        offsetX: 2,
+        offsetY: 2,
+        color: '#00ff00',
+        blur: 4,
+        fill: true
+      }
+    }).setOrigin(0.5).setDepth(10).setInteractive({ useHandCursor: true });
+    this.adsContainer.add(adsFooter);
+    adsFooter.on('pointerdown', () => {
+      this.scene.stop();
+      this.scene.start('SponsorsScene');     
+    });
   }
 
   renderSponsorAd(ad, w, h, x, y, scale) {
