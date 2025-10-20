@@ -122,7 +122,10 @@ export class LeaderboardScene extends Phaser.Scene {
       }
 
       this.leaderboardData = data;
-      this.displayLeaderboard();
+      
+      if (this.leaderboardData > 0) {
+        this.displayLeaderboard();
+      }      
       this.displaySponsorAds();
     });  
   }
@@ -238,7 +241,7 @@ export class LeaderboardScene extends Phaser.Scene {
     // After leaderboard
     const lastRow = this.leaderboardData.length > 0 ? 
       160 + (this.leaderboardData.length * 30) + 40 : 
-      height / 2 + 100;
+      height / 2;
 
     const AdsHeader = this.add.text(width / 2, lastRow + 40, 'SPONSORED BY', {
       fontFamily: font,
