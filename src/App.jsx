@@ -62,6 +62,7 @@ function App() {
     eventName: 'RandomNumberResult',
     args: { sequenceNumber: ticketId },
     chainId: baseSepolia.id,
+    enabled: !!ticketId,
     onLogs: (logs) => {
       for (const log of logs) {
         const { args } = log;
