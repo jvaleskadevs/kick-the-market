@@ -112,6 +112,7 @@ export class LeaderboardScene extends Phaser.Scene {
       this.clearLeaderboard();
 
       if (data.length === 0) {
+        const width = this.cameras.main.width;
         const text = this.add.text(width / 2, height / 2, 'NO DATA', {
           fontFamily: font,
           fontSize: '20px',
