@@ -20,9 +20,9 @@ contract Sponsors is AccessControl, ReentrancyGuard {
     uint256 public immutable TIMESTAMP_ZERO = block.timestamp;
     
     // Minimum ETH required per tier
-    uint256 public constant GOLD_PRICE = 0.01 ether;
-    uint256 public constant SILVER_PRICE = 0.0069 ether;
-    uint256 public constant BRONZE_PRICE = 0.0042 ether;
+    uint256 public constant GOLD_PRICE = 0.000001 ether;
+    uint256 public constant SILVER_PRICE = 0.00000069 ether;
+    uint256 public constant BRONZE_PRICE = 0.00000042 ether;
 
     // Weekly ad slots
     uint256 public constant BRONZE_SLOTS = 3;

@@ -6,12 +6,16 @@ export class LeaderboardScene extends Phaser.Scene {
     this.leaderboardData = [];
     this.currentLeaderboardTab = "free";
     this.isLoading = true;
-    this.sponsorAds = []; 
     this.adsContainer = null;
+    this.sponsorAds = [];
   }
 
   init(data) {
-    // Optional: receive data from calling scene
+    this.adsContainer = this.add.container();
+    this.sponsorAds = this.game.web3Data.sponsors;  
+    console.log(this.game.web3Data);
+    this.displaySponsorAds(this.game.web3Data.sponsors);  
+    console.log("init"); 
   }
 
   preload() {
@@ -19,6 +23,8 @@ export class LeaderboardScene extends Phaser.Scene {
   }
 
   create() {
+    console.log("create");
+    console.log(this.sponsorAds);
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
@@ -100,7 +106,6 @@ export class LeaderboardScene extends Phaser.Scene {
 
     this.leaderboardContainer = this.add.container();
     this.leaderboardGraphics = [];
-    this.adsContainer = this.add.container();
 
     this.fetchLeaderboard();
   }
@@ -123,15 +128,22 @@ export class LeaderboardScene extends Phaser.Scene {
         return;
       }
 
-      this.leaderboardData = data;
-      
-      if (this.leaderboardData > 0) {
-        this.displayLeaderboard();
-      }      
+      this.leaderboardData = data;      
+      this.displayLeaderboard();  
+      this.displaySponsorAds();  
+      //this.fetchSponsors();
+    });  
+  }
+/*  
+  fetchSponsors() {
+    getSponsors().then(data => {
+      this.clearAds();
+
+      this.sponsorAds = data;
       this.displaySponsorAds();
     });  
   }
-
+*/
   displayLeaderboard() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
@@ -232,6 +244,8 @@ export class LeaderboardScene extends Phaser.Scene {
   }
   
   displaySponsorAds() {
+    this.clearAds();
+    
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
     const font = 'Share Tech Mono';
@@ -259,18 +273,21 @@ export class LeaderboardScene extends Phaser.Scene {
         fill: true
       }
     }).setOrigin(0.5).setDepth(10);
+    this.adsContainer.add(AdsHeader);
 
     let y = lastRow + 120;
 
     // === MOCK SPONSOR DATA ===
+    /*
     this.sponsorAds = [
-      { tier: 'Gold', name: 'Onchain Blocks', cta: 'JOIN CHANNEL', desc: 'Let the fun begin, anon blockmate', website: 'https://farcaster.xyz/channel/onchainblocks', logo: 'https://via.placeholder.com' },
-      { tier: 'Silver', name: 'DIAMOND LABS', cta: 'BUILD WITH US', desc: 'Building the future we deserve', website: 'https://farcaster.xyz/channel/onchainblocks', logo: 'https://via.placeholder.com' },
-      { tier: 'Silver', name: 'DIAMOND LABS', cta: 'BUILD WITH US', desc: 'Building the future we deserve', website: 'https://farcaster.xyz/channel/onchainblocks', logo: 'https://via.placeholder.com' },
+      { tier: 'Gold', name: 'Onchain Blocks', cta: 'JOIN CHANNEL', desc: 'Let the fun begin, anon blockmate', website: 'https://farcaster.xyz/~/channel/onchain-blocks', logo: 'https://via.placeholder.com' },
+      { tier: 'Silver', name: 'DIAMOND LABS', cta: 'BUILD WITH US', desc: 'Building the future we deserve', website: 'https://farcaster.xyz/~/channel/onchain-blocks', logo: 'https://via.placeholder.com' },
+      { tier: 'Silver', name: 'DIAMOND LABS', cta: 'BUILD WITH US', desc: 'Building the future we deserve', website: 'https://farcaster.xyz/~/channel/onchain-blocks', logo: 'https://via.placeholder.com' },
       { tier: 'Bronze', name: 'OBA', cta: 'GENERATE IMAGE', desc: 'Onchain Blocks Agency', website: 'https://obagents.vercel.app', logo: 'https://via.placeholder.com/' },
       { tier: 'Bronze', name: 'OBA', cta: 'BEEP BOOP', desc: 'Onchain Blocks Agency', website: 'https://obagents.vercel.app', logo: 'https://via.placeholder.com/' },
       { tier: 'Bronze', name: 'OBA', cta: 'GENERATE GIFS', desc: 'Onchain Blocks Agency', website: 'https://obagents.vercel.app', logo: 'https://via.placeholder.com/' }
     ];
+    */
 
     // --- GOLD AD ---
     this.renderSponsorAd(this.sponsorAds[0], adWidth + 20, 120, width / 2, y, 1.0);
@@ -318,7 +335,7 @@ export class LeaderboardScene extends Phaser.Scene {
 
     // Logo: positioned at calculated left
     const logoX = contentX + logoSize / 2;
-    const logo = this.add.image(logoX, contentY + 16, ad.logo)
+    const logo = this.add.image(logoX, contentY + 16, ad.logoUrl)
       .setDisplaySize(logoSize, logoSize)
       .setOrigin(0.5)
       .setDepth(6);
@@ -336,7 +353,7 @@ export class LeaderboardScene extends Phaser.Scene {
     this.adsContainer.add(name);
 
     // Description: below logo
-    const desc = this.add.text(logoX - logoSize / 2, contentY + 36, ad.desc, {
+    const desc = this.add.text(logoX - logoSize / 2, contentY + 36, ad.description, {
       fontFamily: font,
       fontSize: `${Math.floor(12 * scale)}px`,
       fill: '#0f9',

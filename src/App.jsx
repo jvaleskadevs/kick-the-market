@@ -11,9 +11,11 @@ import {
   APP_KEY, 
   FREE_KTM_SCORE_NFT_ADDRESS, 
   KTM_SCORE_NFT_ADDRESS, 
-  JACKPOT_ADDRESS 
+  JACKPOT_ADDRESS,
+  SPONSORS_ADDRESS
 } from './config';
 import { jackpotAbi } from './abis/jackpot';
+import { sponsorsAbi } from './abis/sponsors';
 import '@rainbow-me/rainbowkit/styles.css';
 import './App.css';
 
@@ -45,6 +47,14 @@ function App() {
     functionName: 'mintPrice',
     chainId: baseSepolia.id,
   });
+  
+  const { data: sponsors } = useReadContract({
+    address: SPONSORS_ADDRESS,
+    abi: sponsorsAbi,
+    functionName: 'currentAds',
+    chainId: baseSepolia.id,
+  });
+  console.log(sponsors);
   
   const { data: walletBalance } = useBalance({
     address,
@@ -336,7 +346,7 @@ function App() {
   useEffect(() => {
     if (gameRef.current && !window.phaserGame) {
       window.phaserGame = new Game(
-        gameRef.current, { address, isConnected, mintScore, setMintParams }
+        gameRef.current, { address, isConnected, mintScore, setMintParams, sponsors }
       );
     }
 
@@ -346,7 +356,7 @@ function App() {
         window.phaserGame = null;
       }
     };
-  }, [isConnected, address, setMintParams]);
+  }, [isConnected, address, setMintParams, sponsors]);
 
   return (
     <div className="App">

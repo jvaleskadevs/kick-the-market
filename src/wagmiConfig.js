@@ -16,6 +16,6 @@ export const config = createConfig({
   ],
   transports: {
     //[base.id]: http(),
-    [baseSepolia.id]: http(),
+    [baseSepolia.id]: http(import.meta.env.VITE_BASE_SEPOLIA_URL),
   },
 });
