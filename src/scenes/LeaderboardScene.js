@@ -113,8 +113,9 @@ export class LeaderboardScene extends Phaser.Scene {
 
       if (data.length === 0) {
         const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
         const text = this.add.text(width / 2, height / 2, 'NO DATA', {
-          fontFamily: font,
+          fontFamily: 'Share Tech Mono',
           fontSize: '20px',
           fill: '#f00'
         }).setOrigin(0.5);
