@@ -13,6 +13,8 @@ export class SponsorsScene extends Phaser.Scene {
       logoUrl: '',
       website: ''
     };
+    this.previewContainer = null;
+    this.mockLogoUrl = 'ipfs://';
   }
 
   init(data) {
@@ -25,6 +27,147 @@ export class SponsorsScene extends Phaser.Scene {
     this.createSponsorButton();
     this.createTierSelection();
     this.createFormInputs();
+    this.createPreview();
+  }
+
+  createPreview() {
+    // Clear previous preview
+    if (this.previewContainer) {
+      this.previewContainer.destroy(true);
+    }
+
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    let y = 570; // Below tier buttons
+
+    // Create container
+    this.previewContainer = this.add.container();
+    this.previewContainer.setDepth(100);
+
+    // === MOCK AD DATA ===
+    const mockAd = {
+      name: this.form.name || 'Sponsor Name',
+      description: this.form.description || 'Short description here',
+      cta: this.form.cta || 'CLICK HERE',
+      website: this.form.website || 'https://example.com',
+      logoUrl: this.form.logoUrl || this.mockLogoUrl,
+      tier: this.selectedTier
+    };
+    console.log(this.form.name);
+
+    // Determine size based on tier
+    let w, h, scale;
+
+    if (this.selectedTier === 'gold') {
+      w = width - 100;
+      h = 120;
+      scale = 1.0;
+    } else if (this.selectedTier === 'silver') {
+      w = (width - 120) / 2;
+      h = 120;
+      scale = 1.0;
+    } else {
+      w = (width - 160) / 3;
+      h = 120;
+      scale = 1.0;
+    }
+
+    // X position: center if gold, left-aligned otherwise
+    const x = width / 2;
+
+
+    // Label
+    const label = this.add.text(x, y, 'AD PREVIEW:', {
+      fontFamily: 'Share Tech Mono',
+      fontSize: '18px',
+      fill: '#0f0'
+    }).setOrigin(0.5);
+    this.previewContainer.add(label);
+    y += 90;
+
+    // Reuse your renderSponsorAd
+    this.renderSponsorAd(mockAd, w, h, x, y, scale);
+  }
+  
+  renderSponsorAd(ad, w, h, x, y, scale) {
+    const font = 'Share Tech Mono';
+    const greenColor = '#0f0';
+    const borderColor = 0x00ff00;
+
+    // Background box
+    const box = this.add.graphics();
+    box.lineStyle(1, borderColor, 1);
+    box.fillStyle(0x000000, 1);
+    box.strokeRect(x - w / 2, y - h / 2, w, h);
+    box.setDepth(5);
+    this.previewContainer.add(box);
+
+    // === CENTERED CONTENT GROUP ===
+    const contentWidth = 280 * scale; // Estimate width of logo + name + desc
+    const contentHeight = 80;
+    const contentX = 80 + x - contentWidth / 2; // Left edge of content block
+    const contentY = y - contentHeight / 2; // Top of content block
+
+    // Logo size
+    const logoSize = 36 * scale;
+
+    // Logo: positioned at calculated left
+    const logoX = contentX + logoSize / 2;
+    const logo = this.add.image(logoX, contentY + 16, ad.logoUrl)
+      .setDisplaySize(logoSize, logoSize)
+      .setOrigin(0.5)
+      .setDepth(6);
+    this.previewContainer.add(logo);
+
+    // Name: to the right of logo
+    const nameX = contentX + logoSize + 10;
+    const name = this.add.text(nameX, contentY + 8, ad.name, {
+      fontFamily: font,
+      fontSize: `${Math.floor(18 * scale)}px`,
+      fill: '#0f0',
+      stroke: '#003300',
+      strokeThickness: 2
+    }).setOrigin(0).setDepth(6);
+    this.previewContainer.add(name);
+
+    // Description: below logo
+    const desc = this.add.text(logoX - logoSize / 2, contentY + 36, ad.description, {
+      fontFamily: font,
+      fontSize: `${Math.floor(12 * scale)}px`,
+      fill: '#0f9',
+      wordWrap: { width: w * 0.6 }
+    }).setOrigin(0).setDepth(6);
+    this.previewContainer.add(desc);
+
+    // CTA Button – centered in ad box, below description
+    const buttonWidth = w * 0.85;
+    const buttonHeight = 28;
+    const buttonX = x - buttonWidth / 2;
+    const buttonY = y + 20;
+
+    const button = this.add.graphics();
+    button.fillStyle(0x00ff00, 1);
+    button.fillRoundedRect(buttonX, buttonY, buttonWidth, buttonHeight, 6);
+    button.setDepth(7);
+
+    const buttonText = this.add.text(x, buttonY + buttonHeight / 2, ad.cta.toUpperCase(), {
+      fontFamily: font,
+      fontSize: '14px',
+      fill: '#000',
+      stroke: '#003300',
+      strokeThickness: 1
+    }).setOrigin(0.5).setDepth(8);
+
+    // Interactive
+    button.setInteractive(
+      new Phaser.Geom.Rectangle(buttonX, buttonY, buttonWidth, buttonHeight),
+      Phaser.Geom.Rectangle.Contains
+    ).on('pointerdown', () => {
+      window.open(ad.website, '_blank');
+    });
+
+    this.previewContainer.add(button);
+    this.previewContainer.add(buttonText);
   }
 
   addEventListeners() {
@@ -165,7 +308,16 @@ export class SponsorsScene extends Phaser.Scene {
         focused.value += key;
       }
 
+      switch (this.inputFields.indexOf(focused)) {
+        case 0: this.form.name = focused.value; break;
+        case 1: this.form.description = focused.value; break;
+        case 2: this.form.cta = focused.value; break;
+        case 3: break;
+        case 4: this.form.website = focused.value; break;
+      }
+
       this.updateInputDisplay(focused);
+      this.createPreview();
     });
   }
 
@@ -213,6 +365,8 @@ export class SponsorsScene extends Phaser.Scene {
           b.setStyle({ backgroundColor: colors[t], fill: '#111' });
         });
         btn.setStyle({ backgroundColor: '#00ff00', fill: '#111' });
+        
+        this.createPreview();
       });
 
       this.tierButtons[tier] = btn;
@@ -235,7 +389,7 @@ export class SponsorsScene extends Phaser.Scene {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-    this.sponsorBtn = this.add.text(width / 2, 640, 'SUBMIT SPONSORSHIP', {
+    this.sponsorBtn = this.add.text(width / 2, 760, 'SUBMIT SPONSORSHIP', {
       fontFamily: 'Share Tech Mono',
       fontSize: '18px',
       fill: '#333',

@@ -12,5 +12,5 @@ export const SPONSORS_ADDRESS = "0x1108B2E244444a23829D9F92c9219eC6980242a0";
 
 export const LIGHTHOUSE_URL = "https://gateway.lighthouse.storage/ipfs/";
 export const ENVIO_DB_ENDPOINT = process.env.NODE_ENV === "development" ? 
-  "http://localhost:8080/v1/graphql" :
+  "http://localhost:8081/v1/graphql" :
   "";

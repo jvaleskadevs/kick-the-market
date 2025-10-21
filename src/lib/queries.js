@@ -11,3 +11,37 @@ query LeaderboardQuery($ktm: String!) {
   }
 }
 `
+
+export const allSponsorsQuery = `
+query AllSponsorsQuery {
+  Sponsors_NewSponsor(order_by: {week: asc, tier: asc}) {
+    id
+    sponsor
+    name
+    description
+    amount
+    cta
+    logoUrl
+    tier
+    website
+    week
+  }
+}
+`
+
+export const sponsorsByWeekQuery = `
+query SponsorsByWeekQuery($week: numeric_comparison_exp = {_eq: ""}) {
+  Sponsors_NewSponsor(where: {week: $week}, order_by: {tier: asc}) {
+    id
+    sponsor
+    name
+    description
+    amount
+    cta
+    logoUrl
+    tier
+    website
+    week
+  }
+}
+`

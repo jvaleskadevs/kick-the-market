@@ -19,6 +19,7 @@ import { sponsorsAbi } from './abis/sponsors';
 import '@rainbow-me/rainbowkit/styles.css';
 import './App.css';
 
+//import { getSponsorsByWeek } from './lib/getSponsors';
 
 function App() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
@@ -405,6 +406,8 @@ function App() {
       if (capabilities?.includes('haptics.impactOccurred')) {
         setHapticsOn(true);
       }
+                     // const allSponsors = await getSponsorsByWeek(0);
+           //console.log(allSponsors);
     };
     if (sdk && !isSDKLoaded) {
       setIsSDKLoaded(true);
