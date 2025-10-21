@@ -111,11 +111,13 @@ export class LeaderboardScene extends Phaser.Scene {
       this.isLoading = false;
       this.loadingText.destroy();
       this.clearLeaderboard();
+      
+      data = [];
 
       if (data.length === 0) {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        const text = this.add.text(width / 2, height / 2, 'NO DATA', {
+        const text = this.add.text(width / 2, height / 2 - 200, 'NO DATA', {
           fontFamily: 'Share Tech Mono',
           fontSize: '20px',
           fill: '#f00'
@@ -244,7 +246,7 @@ export class LeaderboardScene extends Phaser.Scene {
     // After leaderboard
     const lastRow = this.leaderboardData.length > 0 ? 
       160 + (this.leaderboardData.length * 30) + 40 : 
-      height / 2;
+      height / 2 - 100;
 
     const AdsHeader = this.add.text(width / 2, lastRow + 20, 'SPONSORED BY', {
       fontFamily: font,
@@ -407,7 +409,6 @@ export class LeaderboardScene extends Phaser.Scene {
 
     this.leaderboardGraphics.forEach(graphic => graphic.destroy());
     this.leaderboardGraphics = [];
-    this.clearAds();
   }
 
   clearAds() {
