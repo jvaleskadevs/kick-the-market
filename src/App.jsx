@@ -406,7 +406,7 @@ function App() {
       if (capabilities?.includes('haptics.impactOccurred')) {
         setHapticsOn(true);
       }
-                     // const allSponsors = await getSponsorsByWeek(0);
+            // const allSponsors = await getSponsorsByWeek(0);
            //console.log(allSponsors);
     };
     if (sdk && !isSDKLoaded) {

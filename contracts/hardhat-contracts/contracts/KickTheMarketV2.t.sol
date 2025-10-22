@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {console, Test} from "forge-std/Test.sol";
-import {KickTheMarket} from "./KickTheMarketV2.sol";
+import {KickTheMarket} from "./KickTheMarketV3.sol";
 import {IJackpot} from "./interfaces/IJackpot.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
@@ -67,10 +67,10 @@ contract KickTheMarketTest is Test {
         mockJackpot = new MockJackpot();
         vm.startPrank(BACKEND_SIGNER);
         ktm = new KickTheMarket(0, address(mockJackpot));
-        console.log(ktm.backendSigner());        
+        //console.log(ktm.backendSigner());        
 
         ktmWithPrize = new KickTheMarket(0.42 ether, address(mockJackpot));
-        console.log(ktmWithPrize.backendSigner());
+        //console.log(ktmWithPrize.backendSigner());
         vm.stopPrank();
         
         vm.deal(PLAYER, 3 ether);
@@ -257,8 +257,7 @@ contract KickTheMarketTest is Test {
     }
     
     function test_Fallback_Reverts() public {
-        vm.expectRevert(bytes("Fallback not allowed"));
-        (bool success, ) = address(ktm).call{value: 1 ether}("invalid");
-        require(!success, "Fallback should revert");
+        vm.expectRevert("Fallback not allowed");
+        address(ktm).call{value: 0 ether}("0xinvalid");
     }
 }

@@ -1,7 +1,5 @@
 {
-  "Sponsors0Module#SPONSORSS": "0x1108B2E244444a23829D9F92c9219eC6980242a0",
-  "KickTheMarketModule#KickTheMarket": "0x3AB4eA617dF8CC2F4180eAB73be304bD971387Fa",
-  "JackpotAndKickTheMarketModule#Jackpot": "0x8fe2e15D644baF41D40ba42f858c8B3b6Cb09b80",
-  "JackpotAndKickTheMarketModule#KickTheMarket": "0x88D7188ce5afDb4B6148aBCFcbdCe14911E68D91",
-  "KickTheMarketModule#PAID": "0x6ECFf023610e5F1e8047A5fE93c1Ab7b71E78BF8"
+  "JackpotModule0#JackpotV2": "0x5667e3FEe8E7762D9515EcD65e09bC80BF116FA0",
+  "KickTheMarketModule#v3free": "0x04E3f863123AF03A69bfAa214C911b876f417c7D",
+  "KickTheMarketModule#v3paid": "0x23c23ee1c65c7D95144EE36ffaFA2161698B64a4"
 }

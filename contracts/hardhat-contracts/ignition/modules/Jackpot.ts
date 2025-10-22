@@ -1,11 +1,12 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-export default buildModule("JackpotModule", (m) => {
+export default buildModule("JackpotModule0", (m) => {
   const JACKPOT_PRIZE_PERMIL = 69;
   const JACKPOT_WIN_ODDS = 69;
   const jackpot = m.contract(
-    "Jackpot", 
-    [JACKPOT_PRIZE_PERMIL, JACKPOT_WIN_ODDS]
+    "contracts/JackpotV2.sol:Jackpot", 
+    [JACKPOT_PRIZE_PERMIL, JACKPOT_WIN_ODDS],
+    { id: "JackpotV2" }
   );
 
   return { jackpot };
