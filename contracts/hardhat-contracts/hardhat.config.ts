@@ -38,6 +38,12 @@ const config: HardhatUserConfig = {
       type: "edr-simulated",
       chainType: "op",
     },
+    base: {
+      type: "http",
+      chainType: "op",
+      url: configVariable("BASE_URL"),
+      accounts: [configVariable("OBPKM")],
+    },
     baseSepolia: {
       type: "http",
       chainType: "op",

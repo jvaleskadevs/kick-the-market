@@ -16,13 +16,13 @@ contract Sponsors is AccessControl, ReentrancyGuard {
         Bronze
     }
     
-    address public immutable JACKPOT_ADDRESS;
+    address public JACKPOT_ADDRESS;
     uint256 public immutable TIMESTAMP_ZERO = block.timestamp;
     
     // Minimum ETH required per tier
-    uint256 public constant GOLD_PRICE = 0.000001 ether;
-    uint256 public constant SILVER_PRICE = 0.00000069 ether;
-    uint256 public constant BRONZE_PRICE = 0.00000042 ether;
+    uint256 public GOLD_PRICE = 0.000001 ether;
+    uint256 public SILVER_PRICE = 0.00000069 ether;
+    uint256 public BRONZE_PRICE = 0.00000042 ether;
 
     // Weekly ad slots
     uint256 public constant BRONZE_SLOTS = 3;
@@ -154,7 +154,7 @@ contract Sponsors is AccessControl, ReentrancyGuard {
     }
 
     /// @notice Returns the price for a given tier
-    function tierPrice(Tier _tier) public pure returns (uint256) {
+    function tierPrice(Tier _tier) public view returns (uint256) {
         if (_tier == Tier.Gold) return GOLD_PRICE;
         if (_tier == Tier.Silver) return SILVER_PRICE;
         if (_tier == Tier.Bronze) return BRONZE_PRICE;
@@ -174,23 +174,15 @@ contract Sponsors is AccessControl, ReentrancyGuard {
     }
     
     // admin only functions
-    /*
     function setPrices(uint256 gold, uint256 silver, uint256 bronze) public onlyRole(DEFAULT_ADMIN_ROLE) {
         GOLD_PRICE = gold;
         SILVER_PRICE = silver;
         BRONZE_PRICE = bronze;
     }
-    
-    function setSlots(uint256 gold, uint256 silver, uint256 bronze) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        GOLD_SLOTS = gold;
-        SILVER_SLOTS = silver;
-        BRONZE_SLOTS = bronze;
-    }
    
     function setJackpot(address jackpotAddress) public onlyRole(DEFAULT_ADMIN_ROLE) {
         JACKPOT_ADDRESS = jackpotAddress;
     }
-    */
 
     // Block any lost of funds
     receive() external payable {
