@@ -7,7 +7,7 @@ export const getLeaderboard = async (leaderboardType) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-hasura-admin-secret': 'testing',
+        //'x-hasura-admin-secret': 'testing',
       },
       body: JSON.stringify({ 
         query: leaderboardQuery,
