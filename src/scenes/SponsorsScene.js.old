@@ -39,7 +39,7 @@ export class SponsorsScene extends Phaser.Scene {
 
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
-    let y = this.isTouchable ? 620 : 570; // Adjusted for mobile
+    let y = 570; // Below tier buttons
 
     // Create container
     this.previewContainer = this.add.container();
@@ -76,111 +76,20 @@ export class SponsorsScene extends Phaser.Scene {
     // X position: center if gold, left-aligned otherwise
     const x = width / 2;
 
+
     // Label
-    const label = this.add.text(x, y - 20, 'AD PREVIEW:', {
+    const label = this.add.text(x, y, 'AD PREVIEW:', {
       fontFamily: 'Share Tech Mono',
       fontSize: '18px',
       fill: '#0f0'
     }).setOrigin(0.5);
     this.previewContainer.add(label);
-    y += this.isTouchable ? 70 : 90;
+    y += 90;
 
-    // Use mobile preview rendering if on touch device
-    if (this.isTouchable) {
-      this.renderMobilePreview(mockAd, w, h, x, y, scale);
-    } else {
-      this.renderSponsorAd(mockAd, w, h, x, y, scale);
-    }
+    // Reuse your renderSponsorAd
+    this.renderSponsorAd(mockAd, w, h, x, y, scale);
   }
   
-  renderMobilePreview(ad, w, h, x, y, scale) {
-    // Mobile-specific preview rendering with better layout
-    const font = 'Share Tech Mono';
-    const greenColor = '#0f0';
-    const borderColor = 0x00ff00;
-
-    // Make ad width responsive for mobile
-    const mobileW = this.cameras.main.width * 0.9;
-    const mobileH = h;
-    const mobileX = this.cameras.main.width / 2;
-    const mobileScale = 1.0;
-
-    // Background box
-    const box = this.add.graphics();
-    box.lineStyle(1, borderColor, 1);
-    box.fillStyle(0x000000, 1);
-    box.strokeRect(mobileX - mobileW / 2, y - mobileH / 2, mobileW, mobileH);
-    box.setDepth(5);
-    this.previewContainer.add(box);
-
-    // Content layout for mobile
-    const contentWidth = 280 * mobileScale;
-    const contentHeight = 80;
-    const contentX = mobileX - contentWidth / 2;
-    const contentY = y - contentHeight / 2;
-
-    // Logo size
-    const logoSize = 36 * mobileScale;
-
-    // Logo: positioned at calculated left
-    const logoX = contentX + logoSize / 2;
-    const logo = this.add.image(logoX, contentY + 16, ad.logoUrl)
-      .setDisplaySize(logoSize, logoSize)
-      .setOrigin(0.5)
-      .setDepth(6);
-    this.previewContainer.add(logo);
-
-    // Name: to the right of logo
-    const nameX = contentX + logoSize + 10;
-    const name = this.add.text(nameX, contentY + 8, ad.name, {
-      fontFamily: font,
-      fontSize: `${Math.floor(18 * mobileScale)}px`,
-      fill: '#0f0',
-      stroke: '#003300',
-      strokeThickness: 2
-    }).setOrigin(0).setDepth(6);
-    this.previewContainer.add(name);
-
-    // Description: below logo
-    const desc = this.add.text(logoX - logoSize / 2, contentY + 36, ad.description, {
-      fontFamily: font,
-      fontSize: `${Math.floor(12 * mobileScale)}px`,
-      fill: '#0f9',
-      wordWrap: { width: mobileW * 0.6 }
-    }).setOrigin(0).setDepth(6);
-    this.previewContainer.add(desc);
-
-    // CTA Button – centered in ad box, below description
-    const buttonWidth = mobileW * 0.85;
-    const buttonHeight = 28;
-    const buttonX = mobileX - buttonWidth / 2;
-    const buttonY = y + 20;
-
-    const button = this.add.graphics();
-    button.fillStyle(0x00ff00, 1);
-    button.fillRoundedRect(buttonX, buttonY, buttonWidth, buttonHeight, 6);
-    button.setDepth(7);
-
-    const buttonText = this.add.text(mobileX, buttonY + buttonHeight / 2, ad.cta.toUpperCase(), {
-      fontFamily: font,
-      fontSize: '14px',
-      fill: '#000',
-      stroke: '#003300',
-      strokeThickness: 1
-    }).setOrigin(0.5).setDepth(8);
-
-    // Interactive
-    button.setInteractive(
-      new Phaser.Geom.Rectangle(buttonX, buttonY, buttonWidth, buttonHeight),
-      Phaser.Geom.Rectangle.Contains
-    ).on('pointerdown', () => {
-      window.open(ad.website, '_blank');
-    });
-
-    this.previewContainer.add(button);
-    this.previewContainer.add(buttonText);
-  }
-
   renderSponsorAd(ad, w, h, x, y, scale) {
     const font = 'Share Tech Mono';
     const greenColor = '#0f0';
@@ -291,14 +200,14 @@ export class SponsorsScene extends Phaser.Scene {
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000).setAlpha(0.9);
 
     // Title
-    this.add.text(width / 2, this.isTouchable ? 40 : 60, 'BECOME AN SPONSOR', {
+    this.add.text(width / 2, 60, 'BECOME AN SPONSOR', {
       fontFamily: font,
-      fontSize: this.isTouchable ? '24px' : '28px',
+      fontSize: '28px',
       fill: green
     }).setOrigin(0.5);
 
     // Connect Wallet Button
-    this.connectBtn = this.add.text(width / 2, this.isTouchable ? 100 : 120, 'CONNECT WALLET', {
+    this.connectBtn = this.add.text(width / 2, 120, 'CONNECT WALLET', {
       fontFamily: font,
       fontSize: '16px',
       fill: '#333',
@@ -311,7 +220,7 @@ export class SponsorsScene extends Phaser.Scene {
     });
 
     // Status text
-    this.statusText = this.add.text(width / 2, height - (this.isTouchable ? 80 : 100), '', {
+    this.statusText = this.add.text(width / 2, height - 100, '', {
       fontFamily: font,
       fontSize: '20px',
       fill: green
@@ -329,10 +238,10 @@ export class SponsorsScene extends Phaser.Scene {
 
   createFormInputs() {
     const width = this.cameras.main.width;
-    const startY = this.isTouchable ? 180 : 200;
-    const spacing = this.isTouchable ? 70 : 50;
-    const labelX = this.isTouchable ? width * 0.3 : width * 0.25;
-    const inputX = this.isTouchable ? width * 0.5 : width * 0.65;
+    const startY = 200;
+    const spacing = 50;
+    const labelX = width * 0.25;
+    const inputX = width * 0.65;
     const green = '#0f0';
     const font = 'Share Tech Mono';
 
@@ -346,80 +255,45 @@ export class SponsorsScene extends Phaser.Scene {
 
     const placeholders = [
       'Acme Corp',
-      'Revolutionizing onchain gaming',
+      'Revolutionizing Web3 gaming',
       'Play Now',
       'ipfs://Qm...',
-      'https://example.com'
+      'https://acmecorp.com'
     ];
 
     this.inputFields = [];
 
     labels.forEach((label, i) => {
-      // Mobile
-      if (this.isTouchable) {
-        // Label above input
-        this.add.text(inputX, startY + i * spacing - 30, label, {
-          fontFamily: font,
-          fontSize: '16px',
-          fill: green
-        }).setOrigin(0.5);
-        
-        // Input box centered
-        const inputBg = this.add.rectangle(inputX, startY + i * spacing, 300, 32, 0x222222)
-          .setOrigin(0.5)
-          .setStrokeStyle(1, '0x00ff00');
+      // Label
+      this.add.text(labelX, startY + i * spacing, label, {
+        fontFamily: font,
+        fontSize: '16px',
+        fill: green
+      }).setOrigin(0.5);
 
-        const inputText = this.add.text(inputX, startY + i * spacing, placeholders[i], {
-          fontFamily: font,
-          fontSize: '14px',
-          fill: '#aaa'
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      // Input box 
+      const inputBg = this.add.rectangle(inputX, startY + i * spacing, 300, 32, 0x222222)
+        .setOrigin(0.5)
+        .setStrokeStyle(1, '0x00ff00');
 
-        this.inputFields.push({
-          bg: inputBg,
-          text: inputText,
-          placeholder: placeholders[i],
-          value: '',
-          active: false
-        });
+      const inputText = this.add.text(inputX, startY + i * spacing, placeholders[i], {
+        fontFamily: font,
+        fontSize: '14px',
+        fill: '#aaa'
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        // Click to focus
-        inputText.on('pointerdown', () => {
-          this.focusInput(i);
-        });
-      } else {
-        // Desktop
-        // Label
-        this.add.text(labelX, startY + i * spacing, label, {
-          fontFamily: font,
-          fontSize: '16px',
-          fill: green
-        }).setOrigin(0.5);
+      this.inputFields.push({
+        bg: inputBg,
+        text: inputText,
+        placeholder: placeholders[i],
+        value: '',
+        active: false
+      });
 
-        // Input box 
-        const inputBg = this.add.rectangle(inputX, startY + i * spacing, 300, 32, 0x222222)
-          .setOrigin(0.5)
-          .setStrokeStyle(1, '0x00ff00');
-
-        const inputText = this.add.text(inputX, startY + i * spacing, placeholders[i], {
-          fontFamily: font,
-          fontSize: '14px',
-          fill: '#aaa'
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-        this.inputFields.push({
-          bg: inputBg,
-          text: inputText,
-          placeholder: placeholders[i],
-          value: '',
-          active: false
-        });
-
-        // Click to focus
-        inputText.on('pointerdown', () => {
-          this.focusInput(i);
-        });
-      }
+      // Click to focus
+      inputText.on('pointerdown', () => {
+        this.focusInput(i);
+      });
     });
 
     // Make keyboard input work
@@ -461,7 +335,7 @@ export class SponsorsScene extends Phaser.Scene {
 
   createTierSelection() {
     const width = this.cameras.main.width;
-    const y = this.isTouchable ? 540 : 500;
+    const y = 500;
     const font = 'Share Tech Mono';
     const tiers = ['bronze', 'silver', 'gold'];
     const colors = { bronze: '#CD7F32', silver: '#C0C0C0', gold: '#FFD700' };
@@ -469,100 +343,54 @@ export class SponsorsScene extends Phaser.Scene {
 
     this.tierButtons = {};
 
-    if (this.isTouchable) {
-      // Mobile layout: centered tier buttons
-      const centerX = width / 2;
-      const buttonSpacing = 140;
-      
-      tiers.forEach((tier, i) => {
-        // Center the buttons horizontally
-        const x = centerX + (i - 1) * buttonSpacing;
-        const btn = this.add.text(x, y, tier.toUpperCase(), {
-          fontFamily: font,
-          fontSize: '24px',
-          fill: '#111',
-          backgroundColor: colors[tier]
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    tiers.forEach((tier, i) => {
+      const x = width * 0.25 + (i+1) * 120;
+      const btn = this.add.text(x, y, tier.toUpperCase(), {
+        fontFamily: font,
+        fontSize: '24px',
+        fill: '#111',
+        backgroundColor: colors[tier]
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      const priceText = this.add.text(x, y + 25, prices[tier], {
+        fontFamily: font,
+        fontSize: '16px',
+        fill: colors[tier]
+      }).setOrigin(0.5);
+
+      btn.on('pointerdown', () => {
+        // Update selected
+        this.selectedTier = tier;
+        // Visual feedback
+        Object.keys(this.tierButtons).forEach(t => {
+          const b = this.tierButtons[t];
+          b.setStyle({ backgroundColor: colors[t], fill: '#111' });
+        });
+        btn.setStyle({ backgroundColor: '#00ff00', fill: '#111' });
         
-        const priceText = this.add.text(x, y + 25, prices[tier], {
-          fontFamily: font,
-          fontSize: '16px',
-          fill: colors[tier]
-        }).setOrigin(0.5);
-
-        btn.on('pointerdown', () => {
-          // Update selected
-          this.selectedTier = tier;
-          // Visual feedback
-          Object.keys(this.tierButtons).forEach(t => {
-            const b = this.tierButtons[t];
-            b.setStyle({ backgroundColor: colors[t], fill: '#111' });
-          });
-          btn.setStyle({ backgroundColor: '#00ff00', fill: '#111' });
-          
-          this.createPreview();
-        });
-
-        this.tierButtons[tier] = btn;
+        this.createPreview();
       });
 
-      // Label - centered
-      this.add.text(centerX, y - 40, 'SELECT SPONSORSHIP TIER:', {
-        fontFamily: font,
-        fontSize: '18px',
-        fill: '#0f0'
-      }).setOrigin(0.5);
-    } else {
-      // Desktop layout
-      tiers.forEach((tier, i) => {
-        const x = width * 0.25 + (i+1) * 150;
-        const btn = this.add.text(x, y, tier.toUpperCase(), {
-          fontFamily: font,
-          fontSize: '24px',
-          fill: '#111',
-          backgroundColor: colors[tier]
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-        const priceText = this.add.text(x, y + 25, prices[tier], {
-          fontFamily: font,
-          fontSize: '16px',
-          fill: colors[tier]
-        }).setOrigin(0.5);
-
-        btn.on('pointerdown', () => {
-          // Update selected
-          this.selectedTier = tier;
-          // Visual feedback
-          Object.keys(this.tierButtons).forEach(t => {
-            const b = this.tierButtons[t];
-            b.setStyle({ backgroundColor: colors[t], fill: '#111' });
-          });
-          btn.setStyle({ backgroundColor: '#00ff00', fill: '#111' });
-          
-          this.createPreview();
-        });
-
-        this.tierButtons[tier] = btn;
-      });
-
-      // Label
-      this.add.text(width * 0.5, y - 40, 'SELECT SPONSORSHIP TIER:', {
-        fontFamily: font,
-        fontSize: '18px',
-        fill: '#0f0'
-      }).setOrigin(0.5);
-    }
+      this.tierButtons[tier] = btn;
+    });
 
     // Default selection visual
     this.time.delayedCall(100, () => {
       this.tierButtons[this.selectedTier].setStyle({ backgroundColor: '#00ff00', fill: '#111' });
     });
+
+    // Label
+    this.add.text(width * 0.5, y - 40, 'SELECT SPONSORSHIP TIER:', {
+      fontFamily: font,
+      fontSize: '18px',
+      fill: '#0f0'
+    }).setOrigin(0.5);
   }
 
   createSponsorButton() {
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
 
-    this.sponsorBtn = this.add.text(width / 2, this.isTouchable ? 800 : 760, 'SUBMIT SPONSORSHIP', {
+    this.sponsorBtn = this.add.text(width / 2, 760, 'SUBMIT SPONSORSHIP', {
       fontFamily: 'Share Tech Mono',
       fontSize: '18px',
       fill: '#333',

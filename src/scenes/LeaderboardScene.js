@@ -7,13 +7,15 @@ export class LeaderboardScene extends Phaser.Scene {
     this.currentLeaderboardTab = "free";
     this.isLoading = true;
     this.adsContainer = null;
-    this.sponsorAds = [];
+    this.sponsorAds = [];    
   }
 
   init(data) {
     this.adsContainer = this.add.container();
     this.sponsorAds = this.game.web3Data.sponsors;  
     this.displaySponsorAds(this.game.web3Data.sponsors);  
+    
+    this.isTouchable = this.sys.game.device.input.touch;
   }
 
   preload() {
@@ -49,13 +51,17 @@ export class LeaderboardScene extends Phaser.Scene {
       }
     }).setOrigin(0.5).setDepth(10);
 
+    const buttonWidth = Math.min(180, width * 0.35);
+    const fontSize = width >= 1200 ? '20px' : '16px';
+    const padding = { left: 12, right: 12, top: 8, bottom: 8 };
+
     // FREE Leadearboard button
-    const freeLeaderboardButton = this.add.text((width / 2) - 150, 100, 'FREE LEAGUE', {
+    const freeLeaderboardButton = this.add.text((width / 2) - buttonWidth + 30, 100, 'FREE LEAGUE', {
       fontFamily: font,
-      fontSize: '18px',
+      fontSize: fontSize,
       fill: greenColor,
       backgroundColor: '#000',
-      padding: { left: 10, right: 10, top: 5, bottom: 5 }
+      padding: padding
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     freeLeaderboardButton.on('pointerdown', () => {
@@ -64,12 +70,12 @@ export class LeaderboardScene extends Phaser.Scene {
     });
         
     // PAID Leadearboard button
-    const paidLeaderboardButton = this.add.text((width / 2) + 150, 100, 'ETH LEAGUE', {
+    const paidLeaderboardButton = this.add.text((width / 2) + buttonWidth - 30, 100, 'ETH LEAGUE', {
       fontFamily: font,
-      fontSize: '18px',
+      fontSize: fontSize,
       fill: greenColor,
       backgroundColor: '#000',
-      padding: { left: 10, right: 10, top: 5, bottom: 5 }
+      padding: padding
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     paidLeaderboardButton.on('pointerdown', () => {
@@ -80,7 +86,7 @@ export class LeaderboardScene extends Phaser.Scene {
     // Back button
     const backButton = this.add.text(width / 2, height - 40, 'BACK', {
       fontFamily: font,
-      fontSize: '18px',
+      fontSize: fontSize,
       fill: greenColor,
       backgroundColor: '#000',
       padding: { left: 10, right: 10, top: 5, bottom: 5 }
@@ -115,7 +121,7 @@ export class LeaderboardScene extends Phaser.Scene {
       if (data.length === 0) {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
-        const text = this.add.text(width / 2, height / 2 - 200, 'NO DATA', {
+        const text = this.add.text(width / 2, height / 2 - 300, 'NO DATA', {
           fontFamily: 'Share Tech Mono',
           fontSize: '20px',
           fill: '#f00'
@@ -132,6 +138,11 @@ export class LeaderboardScene extends Phaser.Scene {
   }
 
   displayLeaderboard() {
+    if (this.isTouchable) {
+      this.displayMobileLeaderboard();
+      return;
+    }
+
     const width = this.cameras.main.width;
     const height = this.cameras.main.height;
     const font = 'Share Tech Mono';
@@ -230,6 +241,153 @@ export class LeaderboardScene extends Phaser.Scene {
     this.leaderboardGraphics.push(scanlines);
   }
   
+displayMobileLeaderboard() {
+    this.clearLeaderboard();
+    // Mobile-specific leaderboard rendering
+    const width = this.cameras.main.width;
+    const height = this.cameras.main.height;
+    const font = 'Share Tech Mono';
+    const greenColor = '#0f0';
+    const startY = 140;
+    const rowHeight = 40;
+
+    // Create a scrollable container for mobile
+    const containerWidth = width * 0.9;
+    const containerX = width / 2;
+
+    // Create a clipping area for the leaderboard
+    const clipRect = this.add.graphics();
+    clipRect.fillStyle(0x000000, 0.8);
+    clipRect.fillRect(containerX - containerWidth / 2, startY - 10, containerWidth, Math.min(400, this.leaderboardData.length * rowHeight + 60));
+    clipRect.setAlpha(0.3);
+    this.leaderboardGraphics.push(clipRect);
+    
+    // Apply mask to create scrollable effect
+    const mask = clipRect.createGeometryMask();
+    
+    // Headers - stacked vertically for mobile
+    const headerY = startY;
+    const headerTexts = ['RANK', 'ADDRESS', 'SCORE', 'ANOMALY', 'BS', 'KICKS'];
+    
+    // Create header row with proper spacing
+    const headerRow = this.add.container();
+    headerRow.setMask(mask);
+    
+    // Position headers horizontally with proper spacing
+    const colWidth = containerWidth / headerTexts.length;
+    
+    headerTexts.forEach((text, i) => {
+        const x = containerX - containerWidth / 2 + colWidth / 2 + i * colWidth;
+        const header = this.add.text(x, headerY, text, {
+            fontFamily: font,
+            fontSize: '14px',
+            fill: '#0ff',
+            stroke: '#003333',
+            strokeThickness: 1
+        }).setOrigin(0.5);
+        headerRow.add(header);
+    });
+    this.leaderboardContainer.add(headerRow);
+    
+    // Divider line
+    const line = this.add.graphics();
+    line.lineStyle(1, 0x00ff00, 0.5);
+    line.lineBetween(containerX - containerWidth / 2, headerY + 20, containerX + containerWidth / 2, headerY + 20);
+    line.setMask(mask);
+    this.leaderboardGraphics.push(line);
+    this.leaderboardContainer.add(line);
+
+    // Rows
+    this.leaderboardData.forEach((entry, index) => {
+        const y = headerY + 40 + (index * rowHeight);
+        
+        // Create row container with mask
+        const row = this.add.container();
+        row.setMask(mask);
+        
+        // Rank
+        const rankText = this.add.text(containerX - containerWidth / 2 + colWidth / 2, y, `${index + 1}.`, {
+            fontFamily: font,
+            fontSize: '14px',
+            fill: index === 0 ? '#0f0' : '#0f9'
+        }).setOrigin(0.5);
+        row.add(rankText);
+
+        // Shortened address
+        const shortAddr = entry.to ? `${entry.to.slice(0, 6)}.${entry.to.slice(-4)}` : 'ANON';
+        const addressText = this.add.text(containerX - containerWidth / 2 + colWidth / 2 + colWidth, y, shortAddr, {
+            fontFamily: font,
+            fontSize: '14px',
+            fill: '#0f9'
+        }).setOrigin(0.5);
+        row.add(addressText);
+
+        // Score
+        const scoreText = this.add.text(containerX - containerWidth / 2 + colWidth / 2 + 2 * colWidth, y, `${entry.score || 0}`, {
+            fontFamily: font,
+            fontSize: '14px',
+            fill: '#0f0'
+        }).setOrigin(0.5);
+        row.add(scoreText);      
+
+        // Anomaly Level
+        const anomalyText = this.add.text(containerX - containerWidth / 2 + colWidth / 2 + 3 * colWidth, y, `${entry.anomalyLevel || 0}`, {
+            fontFamily: font,
+            fontSize: '14px',
+            fill: '#0f9'
+        }).setOrigin(0.5);
+        row.add(anomalyText);
+
+        // BlackSwan Level
+        const blackSwanText = this.add.text(containerX - containerWidth / 2 + colWidth / 2 + 4 * colWidth, y, `${entry.blackSwanLevel || 0}`, {
+            fontFamily: font,
+            fontSize: '14px',
+            fill: '#0f9'
+        }).setOrigin(0.5);
+        row.add(blackSwanText);
+        
+        // totalKicks
+        const kicksText = this.add.text(containerX - containerWidth / 2 + colWidth / 2 + 5 * colWidth, y, `${entry.totalKicks || 0}`, {
+            fontFamily: font,
+            fontSize: '14px',
+            fill: '#0f9'
+        }).setOrigin(0.5);
+        row.add(kicksText);
+        
+        this.leaderboardContainer.add(row);
+    });
+
+    // Add scanline overlay for style
+    const scanlines = this.add.graphics();
+    scanlines.setAlpha(0.05);
+    for (let y = 0; y < height; y += 4) {
+        scanlines.lineBetween(0, y, width, y);
+    }
+    this.leaderboardGraphics.push(scanlines);
+    
+    // Add visual indicator for scrolling
+    if (this.leaderboardData.length > 8) {
+        const scrollHint = this.add.text(width - 40, startY + 20, '↕', {
+            fontFamily: font,
+            fontSize: '20px',
+            fill: '#0f0'
+        }).setOrigin(0.5);
+        this.leaderboardContainer.add(scrollHint);
+    }
+}
+
+    // === MOCK SPONSOR DATA ===
+    /*
+    this.sponsorAds = [
+      { tier: 'Gold', name: 'Onchain Blocks', cta: 'JOIN CHANNEL', desc: 'Let the fun begin, anon blockmate', website: 'https://farcaster.xyz/~/channel/onchain-blocks', logo: 'https://via.placeholder.com' },
+      { tier: 'Silver', name: 'DIAMOND LABS', cta: 'BUILD WITH US', desc: 'Building the future we deserve', website: 'https://farcaster.xyz/~/channel/onchain-blocks', logo: 'https://via.placeholder.com' },
+      { tier: 'Silver', name: 'DIAMOND LABS', cta: 'BUILD WITH US', desc: 'Building the future we deserve', website: 'https://farcaster.xyz/~/channel/onchain-blocks', logo: 'https://via.placeholder.com' },
+      { tier: 'Bronze', name: 'OBA', cta: 'GENERATE IMAGE', desc: 'Onchain Blocks Agency', website: 'https://obagents.vercel.app', logo: 'https://via.placeholder.com/' },
+      { tier: 'Bronze', name: 'OBA', cta: 'BEEP BOOP', desc: 'Onchain Blocks Agency', website: 'https://obagents.vercel.app', logo: 'https://via.placeholder.com/' },
+      { tier: 'Bronze', name: 'OBA', cta: 'GENERATE GIFS', desc: 'Onchain Blocks Agency', website: 'https://obagents.vercel.app', logo: 'https://via.placeholder.com/' }
+    ];
+    */
+  
   displaySponsorAds() {
     this.clearAds();
     
@@ -248,7 +406,7 @@ export class LeaderboardScene extends Phaser.Scene {
 
     const AdsHeader = this.add.text(width / 2, lastRow + 20, 'SPONSORED BY', {
       fontFamily: font,
-      fontSize: '24px',
+      fontSize: '20px',
       fill: greenColor,
       stroke: '#003300',
       strokeThickness: 2,
@@ -262,45 +420,58 @@ export class LeaderboardScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(10);
     this.adsContainer.add(AdsHeader);
 
-    let y = lastRow + 120;
+    let y = lastRow;
+    
+    if (this.isTouchable) {
+      y += 90;
+      const centerX = width / 2;
 
-    // === MOCK SPONSOR DATA ===
-    /*
-    this.sponsorAds = [
-      { tier: 'Gold', name: 'Onchain Blocks', cta: 'JOIN CHANNEL', desc: 'Let the fun begin, anon blockmate', website: 'https://farcaster.xyz/~/channel/onchain-blocks', logo: 'https://via.placeholder.com' },
-      { tier: 'Silver', name: 'DIAMOND LABS', cta: 'BUILD WITH US', desc: 'Building the future we deserve', website: 'https://farcaster.xyz/~/channel/onchain-blocks', logo: 'https://via.placeholder.com' },
-      { tier: 'Silver', name: 'DIAMOND LABS', cta: 'BUILD WITH US', desc: 'Building the future we deserve', website: 'https://farcaster.xyz/~/channel/onchain-blocks', logo: 'https://via.placeholder.com' },
-      { tier: 'Bronze', name: 'OBA', cta: 'GENERATE IMAGE', desc: 'Onchain Blocks Agency', website: 'https://obagents.vercel.app', logo: 'https://via.placeholder.com/' },
-      { tier: 'Bronze', name: 'OBA', cta: 'BEEP BOOP', desc: 'Onchain Blocks Agency', website: 'https://obagents.vercel.app', logo: 'https://via.placeholder.com/' },
-      { tier: 'Bronze', name: 'OBA', cta: 'GENERATE GIFS', desc: 'Onchain Blocks Agency', website: 'https://obagents.vercel.app', logo: 'https://via.placeholder.com/' }
-    ];
-    */
+      // --- GOLD TIER (Top) ---
+      const goldHeight = this.renderMobileSponsorAd(this.sponsorAds[0], 'Gold', centerX, y);
+      y += (goldHeight - 10);
 
-    // --- GOLD AD ---
-    this.renderSponsorAd(this.sponsorAds[0], adWidth + 20, 120, width / 2, y, 1.0);
-    y += 130;
+      // --- SILVER TIER (Middle) ---
+      const silverY = y;
+      const silverSpacing = adWidth * 0.33;
+      this.renderMobileSponsorAd(this.sponsorAds[1], 'Silver', centerX - silverSpacing, silverY);
+      this.renderMobileSponsorAd(this.sponsorAds[2], 'Silver', centerX + silverSpacing, silverY);
+      y += 50;
 
-    // --- SILVER ADS (2) ---
-    const silverW = (adWidth / 2) - 10;
-    const offsetX = (adWidth / 2) + 20;
+      // --- BRONZE TIER (Bottom) ---
+      const bronzeSpacing = adWidth / 3;
+      for (let i = 3; i < 6; i++) {
+        const x = (width / 2 - adWidth / 2) + bronzeSpacing / 2 + (i - 3) * bronzeSpacing;
+        this.renderMobileSponsorAd(this.sponsorAds[i], 'Bronze', x, y);
+      }
+      y += 60;
+    } else {
+      y += 120;
+      // --- GOLD AD ---
+      this.renderSponsorAd(this.sponsorAds[0], adWidth + 20, 120, width / 2, y, 1.0);
+      y += 130;
 
-    this.renderSponsorAd(this.sponsorAds[1], silverW, 120, width / 2 - offsetX / 2, y, 1);
-    this.renderSponsorAd(this.sponsorAds[2], silverW, 120, width / 2 + offsetX / 2, y, 1);
-    y += 130;
+      // --- SILVER ADS (2) ---
+      const silverW = (adWidth / 2) - 10;
+      const offsetX = (adWidth / 2) + 20;
 
-    // --- BRONZE ADS (3) ---
-    const bronzeW = adWidth / 3 - 12;
-    const spacing = (adWidth - 3 * bronzeW) / 2;
+      this.renderSponsorAd(this.sponsorAds[1], silverW, 120, width / 2 - offsetX / 2, y, 1);
+      this.renderSponsorAd(this.sponsorAds[2], silverW, 120, width / 2 + offsetX / 2, y, 1);
+      y += 130;
 
-    for (let i = 3; i < 6; i++) {
-      const x = (width / 2 - adWidth / 2) + spacing + (i - 3) * (bronzeW + spacing) + bronzeW / 2;
-      this.renderSponsorAd(this.sponsorAds[i], bronzeW, 120, x - 20, y, 1);
+      // --- BRONZE ADS (3) ---
+      const bronzeW = adWidth / 3 - 12;
+      const spacing = (adWidth - 3 * bronzeW) / 2;
+
+      for (let i = 3; i < 6; i++) {
+        const x = (width / 2 - adWidth / 2) + spacing + (i - 3) * (bronzeW + spacing) + bronzeW / 2;
+        this.renderSponsorAd(this.sponsorAds[i], bronzeW, 120, x - 20, y, 1);
+      }
+      y += 70;
     }
-    y += 70;
     
     const adsFooter = this.add.text(width / 2, y, 'WANT TO ANNOUNCE HERE?->', {
       fontFamily: font,
-      fontSize: '16px',
+      fontSize: this.isTouchable ? '12px' : '16px',
       fill: greenColor,
       stroke: '#003300',
       strokeThickness: 1,
@@ -399,6 +570,84 @@ export class LeaderboardScene extends Phaser.Scene {
     this.adsContainer.add(button);
     this.adsContainer.add(buttonText);
   }
+  
+  renderMobileSponsorAd(ad, tier, x, y) {
+    const font = 'Share Tech Mono';
+    const greenColor = '#0f0';
+
+    let fontSize, scale;
+    switch(tier) {
+      case 'Gold':
+        fontSize = '28px';
+        scale = 1.4;
+        break;
+      case 'Silver':
+        fontSize = '22px';
+        scale = 1.2;
+        break;
+      default: // Bronze
+        fontSize = '18px';
+        scale = 1.0;
+    }
+
+    const text = this.add.text(x, y, ad.name, {
+      fontFamily: font,
+      fontSize: fontSize,
+      fill: greenColor,
+      stroke: '#003300',
+      strokeThickness: 2,
+      shadow: {
+        offsetX: 2,
+        offsetY: 2,
+        color: '#00ff00',
+        blur: 4,
+        fill: true
+      }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    // Add subtle glow pulse for Gold tier
+    if (tier === 'Gold') {
+      this.tweens.add({
+        targets: text,
+        alpha: { from: 0.8, to: 1.0 },
+        duration: 1200,
+        ease: 'Sine.easeInOut',
+        repeat: -1,
+        yoyo: true
+      });
+    }
+
+    text.on('pointerdown', () => {
+      window.open(ad.website, '_blank');
+    });
+
+    this.adsContainer.add(text);
+    return 60 * scale; // Return scaled height for spacing
+  }
+  
+  /*
+  renderMobileSponsorAd(ad, x, y) {
+    const font = 'Share Tech Mono';
+    const greenColor = '#0f0';
+
+    // Simple text button for mobile
+    const text = this.add.text(x, y, ad.name, {
+      fontFamily: font,
+      fontSize: '18px',
+      fill: greenColor,
+      backgroundColor: '#003300',
+      padding: { left: 12, right: 12, top: 8, bottom: 8 }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    text.on('pointerdown', () => {
+      window.open(ad.website, '_blank');
+    });
+
+    this.adsContainer.add(text);
+    return text.displayHeight + 10;
+  }
+  */
+  
   
   clearLeaderboard() {
     if (this.leaderboardContainer) {
