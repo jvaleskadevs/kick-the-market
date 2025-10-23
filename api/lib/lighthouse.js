@@ -1,5 +1,5 @@
 //import lighthouse from '@lighthouse-web3/sdk';
-import { LIGHTHOUSE_URL } from "../config.js";
+import { LIGHTHOUSE_URL } from "./config.js";
 
 export async function uploadNftToIpfs(metadata) {
   //return "ipfs://placeholder/" + Math.floor(Math.random() * 123456790);
