@@ -6,9 +6,9 @@ export const SITE_URL = process.env.NODE_ENV === "development" ?
 
 
 // ktm v3, jackpot v2, sponsors v1 - base
-export const FREE_KTM_SCORE_NFT_ADDRESS = "0xEAd257d8b5A0DaE586F1aB1524Ffd8A1461a17a6";
-export const KTM_SCORE_NFT_ADDRESS = "0x4c99638a024B60aadb3586E07B015FC524d22688";
-export const JACKPOT_ADDRESS = "0xA22A367090543e294CBb20b6F1D17a9c4d620052";
+export const FREE_KTM_SCORE_NFT_ADDRESS = "0x14Dabc24Af69d38701927B68E004c71169790a5d";
+export const KTM_SCORE_NFT_ADDRESS = "0x634c4e43Bec566a7704612c8dD1F7c3Dbe28BFDC";
+export const JACKPOT_ADDRESS = "0x4DFF47404766cfDf82665A40Eb822870b9A68538";
 export const SPONSORS_ADDRESS = "0x4f17a5529B4E3e20467774708435740792E460eE";
 // ktm v3, jackpot v2, sponsors v1 - baseSepolia
 //export const FREE_KTM_SCORE_NFT_ADDRESS = "0x04E3f863123AF03A69bfAa214C911b876f417c7D";
@@ -25,5 +25,5 @@ export const SPONSORS_ADDRESS = "0x4f17a5529B4E3e20467774708435740792E460eE";
 
 export const LIGHTHOUSE_URL = "https://gateway.lighthouse.storage/ipfs/";
 export const ENVIO_DB_ENDPOINT = process.env.NODE_ENV === "development" ? 
-  "http://localhost:8081/v1/graphql" :
-  "";
+  "http://localhost:8080/v1/graphql" :
+  "https://indexer.dev.hyperindex.xyz/89e854d/v1/graphql";

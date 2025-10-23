@@ -10,13 +10,14 @@ export async function signScore(req, res) {
     blackSwanLevel,
     totalClicks,
     scoreHash,
+    scoreImage,
     address
   } = req.body;
   
   const appKey = req.headers['authorization'];
   if (appKey !== APP_KEY) return res.status(403).json({ error: "KTM: Forbidden" });
                                      
-  if (!score || !anomalyLevel || !blackSwanLevel || !scoreHash || !address) {
+  if (!score || !anomalyLevel || !blackSwanLevel || !scoreHash || !address || !scoreImage) {
     return res.status(400).json({ error: "KTM: Invalid/Missing Parameters" });
   }
   
@@ -29,7 +30,7 @@ export async function signScore(req, res) {
     const metadata = {
       name: "Kick The Market",
       description: "Score of Kick The Market game.",
-      imageUri: "",//imageUri.replace("ipfs://", LIGHTHOUSE_URL),
+      imageUri: "",
       properties: {
         player: address,
         score,
@@ -40,7 +41,7 @@ export async function signScore(req, res) {
     };
     console.log(metadata);
 
-    let imageUri = await uploadImageToIpfs("");   /// TODO pass image  
+    let imageUri = await uploadImageToIpfs(scoreImage, computedHash); 
     metadata.imageUri = imageUri.replace("ipfs://", LIGHTHOUSE_URL);
     console.log(imageUri);      
     let tokenUri = await uploadNftToIpfs(metadata);    

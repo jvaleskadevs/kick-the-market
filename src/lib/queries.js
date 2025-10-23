@@ -45,3 +45,37 @@ query SponsorsByWeekQuery($week: numeric_comparison_exp = {_eq: ""}) {
   }
 }
 `
+
+export const jackpotWinnersQuery = `
+query JackpotWinners {
+  Jackpot_JackpotWinner(order_by: {ticketId: desc}) {
+    id
+    prize
+    ticketId
+    winner
+  }
+}
+`
+
+export const jackpotClaimedQuery = `
+query JackpotClaimed {
+  Jackpot_JackpotClaimed {
+    id
+    prize
+    winner
+    caller
+  }
+}
+`
+
+export const jackpotTicketsQuery = `
+query JackpotTickets {
+  Jackpot_TicketAssigned(order_by: {ticketId: desc}) {
+    id
+    amount
+    gameAddress
+    player
+    ticketId
+  }
+}
+`

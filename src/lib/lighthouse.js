@@ -2,8 +2,7 @@
 import { LIGHTHOUSE_URL } from "../config.js";
 
 export async function uploadNftToIpfs(metadata) {
-  console.log("test-success");
-  return "ipfs://placeholder/" + Math.floor(Math.random() * 123456790);
+  //return "ipfs://placeholder/" + Math.floor(Math.random() * 123456790);
   if (!metadata || !metadata?.properties || !process.env.LIGHTHOUSE_API_KEY) return "";
   
   try {
@@ -21,7 +20,7 @@ export async function uploadNftToIpfs(metadata) {
     })], { type: 'application/json' }); 
     formData.append('file', blob, metadata.name + ".json");
     
-    const response = await fetch('https://node.lighthouse.storage/api/v0/add', {
+    const response = await fetch('https://upload.lighthouse.storage/api/v0/add', {
         method: 'POST',
         body: formData,
         headers: {
@@ -44,21 +43,21 @@ export async function uploadNftToIpfs(metadata) {
 }
 
 export async function uploadImageToIpfs(image, name) {
-  console.log("test-success");
-  return "ipfs://placeholder/image/" + Math.floor(Math.random() * 123456790);
+  //return "ipfs://placeholder/image/" + Math.floor(Math.random() * 123456790);
   if (!image || !name) return "";
 
   try {
-    const imageEndpoint = image.startsWith("https://") || image.startsWith("data:image/png;base64,") ? image : `data:image/png;base64,${image}`;
+    const imageEndpoint = image.startsWith("https://") || image.startsWith("data:image/png;base64,") || image.startsWith("data:image/svg+xml;base64,") ? image : `data:image/png;base64,${image}`;
     
     const imageResponse = await fetch(imageEndpoint);
     const blob = await imageResponse.blob();  
 
     const formData = new FormData();
     //const blob = new Blob([image], { type: 'image/png' }); 
-    formData.append('file', blob, "img-" + name + "." + blob.type.substring(6));
+    formData.append('file', blob, "img-" + name + "." + blob.type.substring(6).replace('+xml',''));
+    console.log(formData);
     
-    const response = await fetch('https://node.lighthouse.storage/api/v0/add', {
+    const response = await fetch('https://upload.lighthouse.storage/api/v0/add', {
       method: 'POST',
       body: formData,
       headers: {
@@ -67,9 +66,10 @@ export async function uploadImageToIpfs(image, name) {
       },
       //signal: AbortSignal.timeout(5555)
     });
+    console.log(response);
     
     const data = await response?.json(); 
-    //console.log(data);  
+    console.log(data);  
 
     return data?.Hash ? "ipfs://" + data.Hash : "";
   } catch (err) {

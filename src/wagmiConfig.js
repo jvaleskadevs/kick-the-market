@@ -1,10 +1,10 @@
 import { createConfig, http } from 'wagmi';
-import { baseSepolia } from 'wagmi/chains';
+import { base } from 'wagmi/chains';
 import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 import { walletConnect, injected, coinbaseWallet } from 'wagmi/connectors';
 
 export const config = createConfig({
-  chains: [baseSepolia],
+  chains: [base],
   connectors: [
     walletConnect({ projectId: import.meta.env.VITE_WC_PROJECT_ID || '' }),
     injected(),
@@ -15,7 +15,7 @@ export const config = createConfig({
     }),
   ],
   transports: {
-    //[base.id]: http(),
-    [baseSepolia.id]: http(import.meta.env.VITE_BASE_SEPOLIA_URL),
+    //[baseSepolia.id]: http(import.meta.env.VITE_BASE_SEPOLIA_URL),
+    [base.id]: http(import.meta.env.VITE_BASE_URL),
   },
 });

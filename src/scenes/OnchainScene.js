@@ -170,14 +170,14 @@ export class OnchainScene extends Phaser.Scene {
       isTouchable: this.sys.game.device.input.touch,
       isDesktop: this.sys.game.device.os.desktop
     }, null, 2);
-    this.debugText = this.add.text(width/2, 550, debugString, {
+    this.debugText = this.add.text(width/2, 580, debugString, {
       fontFamily: font,
       fontSize: '16px',
       fill: green
     }).setOrigin(0.5);
 
     // Back button
-    this.backBtn = this.add.text(width/2, 460, 'BACK TO GAME', {
+    this.backBtn = this.add.text(width/2, 500, 'BACK TO GAME', {
       fontFamily: font,
       fontSize: '16px',
       fill: green

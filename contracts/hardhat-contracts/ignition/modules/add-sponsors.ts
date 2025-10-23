@@ -33,7 +33,7 @@ export default buildModule("AddSponsorsModule", (m) => {
 
   // set normal prices back
 
-  m.call(sponsors, "setPrices",
+/*  m.call(sponsors, "setPrices",
     [
       BigInt(1000000000000),
       BigInt(690000000000),
@@ -41,6 +41,9 @@ export default buildModule("AddSponsorsModule", (m) => {
     ],
     { id: "BACKPRICES__"}
   );
+*/  
+  const jackpotAddress = "0x4DFF47404766cfDf82665A40Eb822870b9A68538";
+  m.call(sponsors, "setJackpot", [jackpotAddress]);
 
 
   // set the prices on zero to set our default ads for free
@@ -56,7 +59,7 @@ export default buildModule("AddSponsorsModule", (m) => {
 */ 
   // 1 gold
   //const valueGold = m.staticCall(sponsors, "GOLD_PRICE", []);
-
+/*
   m.call(sponsors, "sponsorize",
     [
       week,
@@ -69,7 +72,7 @@ export default buildModule("AddSponsorsModule", (m) => {
     ],
     { id: "GOLD_", value: BigInt(0)}
   );
-  
+*/  
   // 2 silver
   //const valueSilver = m.staticCall(sponsors, "SILVER_PRICE", []);
 /*

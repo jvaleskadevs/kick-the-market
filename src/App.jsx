@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import sdk from "@farcaster/frame-sdk";
 import { parseEventLogs, parseEther } from 'viem'; 
 import { useAccount, useBalance, useReadContract, useWaitForTransactionReceipt, useWatchContractEvent, useWriteContract, useSwitchChain } from 'wagmi';
-import { baseSepolia } from 'wagmi/chains';
+import { base } from 'wagmi/chains';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { erc721Abi } from './abis/erc721';
 import { ktmAbi } from './abis/ktm';
@@ -20,6 +20,8 @@ import '@rainbow-me/rainbowkit/styles.css';
 import './App.css';
 
 //import { getSponsorsByWeek } from './lib/getSponsors';
+import GenerateScoreImage from './lib/generateScoreImage';
+
 
 function App() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
@@ -40,31 +42,31 @@ function App() {
     address: JACKPOT_ADDRESS,
     abi: jackpotAbi,
     functionName: 'getJackpotFee',
-    chainId: baseSepolia.id,
+    chainId: base.id,
   });
 
   const { data: mintPrice } = useReadContract({
     address: KTM_SCORE_NFT_ADDRESS,
     abi: ktmAbi,
     functionName: 'mintPrice',
-    chainId: baseSepolia.id,
+    chainId: base.id,
   });
   
   const { data: sponsors } = useReadContract({
     address: SPONSORS_ADDRESS,
     abi: sponsorsAbi,
     functionName: 'currentAds',
-    chainId: baseSepolia.id,
+    chainId: base.id,
   });
   
   const { data: walletBalance } = useBalance({
     address,
-    chainId: baseSepolia.id,
+    chainId: base.id,
   });
   
   const { data: txReceipt } = useWaitForTransactionReceipt({
     hash: txHash,
-    chainId: baseSepolia.id,
+    chainId: base.id,
   });
   
   useWatchContractEvent({
@@ -72,7 +74,7 @@ function App() {
     abi: jackpotAbi,
     eventName: 'RandomNumberResult',
     args: { sequenceNumber: ticketId },
-    chainId: baseSepolia.id,
+    chainId: base.id,
     enabled: !!ticketId,
     onLogs: (logs) => {
       for (const log of logs) {
@@ -109,7 +111,7 @@ function App() {
     abi: jackpotAbi,
     eventName: 'JackpotWinner',
     args: { ticketId },
-    chainId: baseSepolia.id,
+    chainId: base.id,
     onLogs: (logs) => {
       for (const log of logs) {
         const { args } = log;
@@ -125,7 +127,7 @@ function App() {
     }
   });
 */
-  const signProof = async (mintParams, address) => {
+  const signProof = async (mintParams, address, scoreImage) => {
     try {
       const response = await fetch('/api/sign', {
         method: 'POST',
@@ -139,6 +141,7 @@ function App() {
           blackSwanLevel: mintParams.blackSwanLevel,
           scoreHash: mintParams.hash,
           totalClicks: mintParams.totalClicks,
+          scoreImage,
           address
         })
       });
@@ -182,7 +185,7 @@ function App() {
         return;
       }
 
-      const requiredETH = BigInt(isFree ? '0': mintPrice) + BigInt(jackpotFee) + BigInt(11111);
+      const requiredETH = BigInt(isFree ? BigInt(0) : mintPrice) + BigInt(jackpotFee) + BigInt(11111);
       console.log("requiredETH", requiredETH);
       
       if (walletBalance && walletBalance.value < requiredETH) {
@@ -194,7 +197,15 @@ function App() {
         return;
       }
       
-      const { signature, tokenUri, imageUri } = await signProof(mintParams, address);
+      const imageScore = new GenerateScoreImage().getSVGDataURI(
+        mintParams.score, 
+        mintParams.anomalyLevel, 
+        mintParams.blackSwanLevel, 
+        mintParams.totalClicks
+      );
+      console.log(imageScore);
+      
+      const { signature, tokenUri, imageUri } = await signProof(mintParams, address, imageScore);
       console.log(signature);
       console.log(tokenUri);
       console.log(imageUri);
@@ -210,14 +221,14 @@ function App() {
       }
 
       switchChain(
-        { chainId: baseSepolia.id },
+        { chainId: base.id },
         { 
           onSuccess: () => {
             writeContract({
               address: ktmContract,
               abi: erc721Abi,
               functionName: 'mint',
-              chainId: baseSepolia.id,
+              chainId: base.id,
               args: [ 
                 tokenUri,                
                 mintParams?.score || '1', 
@@ -297,14 +308,14 @@ function App() {
       }
 
       switchChain(
-        { chainId: baseSepolia.id },
+        { chainId: base.id },
         { 
           onSuccess: () => {
             writeContract({
               address: SPONSORS_ADDRESS,
               abi: sponsorsAbi,
               functionName: 'sponsorize',
-              chainId: baseSepolia.id,
+              chainId: base.id,
               args: [ 
                 '1', // TODO: select future weeks
                 sponsorTier,

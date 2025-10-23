@@ -17,7 +17,7 @@ contract Jackpot is AccessControl, IEntropyConsumer, ReentrancyGuard {
     uint256 public JACKPOT_THRESHOLD = type(uint256).max - (type(uint256).max % JACKPOT_WIN_ODDS);
 
     // Required by Pyth Entropy SDK
-    address entropyAddressBaseSepolia = 0x41c9e39574F40Ad34c79f1C99B66A45eFB830d4c;
+    address entropyAddressBase = 0x6E7D74FA7d5c90FEF9F0512987605a6d546181Bb;
     IEntropyV2 entropy;
 
     // keep track of tickets and their owners
@@ -41,7 +41,7 @@ contract Jackpot is AccessControl, IEntropyConsumer, ReentrancyGuard {
         
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        entropy = IEntropyV2(entropyAddressBaseSepolia);
+        entropy = IEntropyV2(entropyAddressBase);
     }
  
      /**

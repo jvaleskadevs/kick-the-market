@@ -111,8 +111,6 @@ export class LeaderboardScene extends Phaser.Scene {
       this.isLoading = false;
       this.loadingText.destroy();
       this.clearLeaderboard();
-      
-      data = [];
 
       if (data.length === 0) {
         const width = this.cameras.main.width;

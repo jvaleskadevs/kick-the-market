@@ -1,12 +1,12 @@
 import { keccak256, encodePacked, toBytes } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { base, baseSepolia } from "viem/chains";
+import { base } from "viem/chains";
 
 export const signProof = async (tokenUri, address) => {
   if (!tokenUri || !address) return undefined;
 
-  const signer = await privateKeyToAccount(process.env.OBPK); 
-  const chainId = baseSepolia.id;
+  const signer = await privateKeyToAccount(process.env.OBPKM); 
+  const chainId = base.id;
   
   if (!signer || !chainId) return undefined;
   

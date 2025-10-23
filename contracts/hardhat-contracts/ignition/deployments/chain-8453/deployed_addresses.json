@@ -1,3 +1,6 @@
 {
-  "AddSponsorsModule#Sponsors": "0x4f17a5529B4E3e20467774708435740792E460eE"
+  "AddSponsorsModule#Sponsors": "0x4f17a5529B4E3e20467774708435740792E460eE",
+  "DeployFullProjectModule#JackpotBase_": "0x4DFF47404766cfDf82665A40Eb822870b9A68538",
+  "DeployFullProjectModule#KtmFreeMintBase_": "0x14Dabc24Af69d38701927B68E004c71169790a5d",
+  "DeployFullProjectModule#KtmPaidMintBase_": "0x634c4e43Bec566a7704612c8dD1F7c3Dbe28BFDC"
 }
