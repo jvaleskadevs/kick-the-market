@@ -25,13 +25,13 @@ export class TerminalScene extends Phaser.Scene {
     ];
 
     lines.forEach((line, i) => {
-      this.time.delayedCall(i * 800, () => {
+      this.time.delayedCall((i * 420)-(i+1), () => {
         this.add.text(69, y + i*40, line, style);
         //this.sound.play('type');
       });
     });
 
-    this.time.delayedCall(666, () => {
+    this.time.delayedCall(5555, () => {
       this.scene.start('BootScene');
     });
   }
